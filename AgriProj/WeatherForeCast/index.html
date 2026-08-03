@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkyCast — Weather Forecast</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app">
+  <h1>🌤️ SkyCast</h1>
+
+  <div class="search-bar">
+    <input id="cityInput" type="text" placeholder="Search any city or village" />
+    <button onclick="searchCity()">Search</button>
+    <button id="locateBtn" onclick="useMyLocation()" title="Use my current location">📍 My Location</button>
+  </div>
+
+  <div class="unit-toggle">
+    <button id="unitBtn" onclick="toggleUnit()">Switch to °F</button>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <div id="content" style="display:none;">
+    <div class="current-card" id="currentCard"></div>
+
+    <div class="section-title">📅 5-Day Forecast</div>
+    <div class="forecast-row" id="forecastRow"></div>
+
+    <div class="section-title">⏱️ Hourly Temperature (Next 24h)</div>
+    <div class="chart-card">
+      <canvas id="hourlyChart" height="90"></canvas>
+    </div>
+  </div>
+</div>
+
+<script src="script_upd.js"></script>
+</body>
+</html>
