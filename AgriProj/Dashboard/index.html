@@ -6,7 +6,7 @@
 <title>AgriLearn — Farmer & Student Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style_new.css">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -32,7 +32,7 @@
       </div>
     </div>
     <div class="landing-login">
-      Already have an account? <a onclick="goTo('screen-login')">Log in here</a>
+      Already registered? <a onclick="goTo('screen-login-farmer')">🌾 Farmer Login</a> · <a onclick="goTo('screen-login-student')">🎓 Student Login</a>
     </div>
   </div>
 </div>
@@ -123,7 +123,7 @@
 
       <button class="btn-primary farmer-btn" onclick="submitRegistration('farmer')">Send OTP &amp; Continue</button>
     </div>
-    <div class="foot-link">Already registered? <a onclick="goTo('screen-login')">Log in instead</a></div>
+    <div class="foot-link">Already registered? <a onclick="goTo('screen-login-farmer')">Log in instead</a></div>
   </div>
 </div>
 
@@ -162,7 +162,7 @@
         </div>
         <div class="field">
           <label>Date of Birth *</label>
-          <input type="date" id="s-dob">
+          <input type="date" id="s-dob" onchange="calculateAge()">
           <div class="error-msg">Date of birth is required</div>
         </div>
       </div>
@@ -208,8 +208,12 @@
 
       <div class="field">
         <label>College Name *</label>
-        <input type="text" id="s-college" placeholder="e.g. Raghu Engineering College">
-        <div class="error-msg">College name is required</div>
+<input
+id="s-college"
+oninput="suggestCollege()"
+autocomplete="off">
+
+<div id="college-list"></div>        <div class="error-msg">College name is required</div>
       </div>
 
       <div class="row-2">
@@ -270,7 +274,7 @@
 
       <button class="btn-primary student-btn" onclick="submitRegistration('student')">Send OTP &amp; Continue</button>
     </div>
-    <div class="foot-link">Already registered? <a onclick="goTo('screen-login')">Log in instead</a></div>
+    <div class="foot-link">Already registered? <a onclick="goTo('screen-login-student')">Log in instead</a></div>
   </div>
 </div>
 
@@ -311,32 +315,61 @@
 </div>
 
 <!-- ===================== LOGIN ===================== -->
-<div class="screen" id="screen-login">
+<!-- ===================== FARMER LOGIN ===================== -->
+<div class="screen" id="screen-login-farmer">
   <div class="topbar">
     <div class="back" onclick="goTo('screen-landing')">←</div>
-    <div class="brand">🌱 <span>AgriLearn Login</span></div>
+    <div class="brand">🌾 <span>Farmer Login</span></div>
   </div>
   <div class="wrap">
     <div class="form-card">
-      <h2>Welcome back</h2>
-      <div class="sub">Log in once — your Farmer and Student profiles are both here.</div>
+      <h2>Welcome back, Farmer</h2>
+      <div class="sub">Log in with the User ID and password you used for your Farmer registration.</div>
 
       <div class="field">
         <label>User ID *</label>
-        <input type="text" id="l-userid" placeholder="Your User ID">
+        <input type="text" id="lf-userid" placeholder="Your User ID">
         <div class="error-msg">Enter your User ID</div>
       </div>
       <div class="field">
         <label>Password *</label>
-        <input type="password" id="l-password" placeholder="Your Password">
-        <div class="error-msg" id="l-password-err">Incorrect User ID or Password</div>
+        <input type="password" id="lf-password" placeholder="Your Password">
+        <div class="error-msg" id="lf-password-err">Incorrect User ID or Password</div>
       </div>
 
-      <button class="btn-primary farmer-btn" onclick="doLogin()">Log In</button>
+      <button class="btn-primary farmer-btn" onclick="doLogin('farmer')">Log In as Farmer</button>
     </div>
-    <div class="foot-link">
-      New here? <a onclick="goTo('screen-landing')">Create an account</a>
+    <div class="foot-link">New here? <a onclick="goTo('screen-farmer-register')">Register as a Farmer</a></div>
+    <div class="foot-link">Looking for the Student portal? <a onclick="goTo('screen-login-student')">Student Login</a></div>
+  </div>
+</div>
+
+<!-- ===================== STUDENT LOGIN ===================== -->
+<div class="screen" id="screen-login-student">
+  <div class="topbar">
+    <div class="back" onclick="goTo('screen-landing')">←</div>
+    <div class="brand">🎓 <span>Student Login</span></div>
+  </div>
+  <div class="wrap">
+    <div class="form-card">
+      <h2>Welcome back, Student</h2>
+      <div class="sub">Log in with the User ID and password you used for your Student registration.</div>
+
+      <div class="field">
+        <label>User ID *</label>
+        <input type="text" id="ls-userid" placeholder="Your User ID">
+        <div class="error-msg">Enter your User ID</div>
+      </div>
+      <div class="field">
+        <label>Password *</label>
+        <input type="password" id="ls-password" placeholder="Your Password">
+        <div class="error-msg" id="ls-password-err">Incorrect User ID or Password</div>
+      </div>
+
+      <button class="btn-primary student-btn" onclick="doLogin('student')">Log In as Student</button>
     </div>
+    <div class="foot-link">New here? <a onclick="goTo('screen-student-register')">Register as a Student</a></div>
+    <div class="foot-link">Looking for the Farmer portal? <a onclick="goTo('screen-login-farmer')">Farmer Login</a></div>
   </div>
 </div>
 
@@ -356,16 +389,45 @@
 
 <!-- ===================== FARMER DASHBOARD (HUB) ===================== -->
 <div class="screen" id="screen-farmer-dashboard">
-  <div class="dash-header">
-    <div>
-      <div class="dash-greeting">Namaste, <span id="dash-farmer-name">Farmer</span> 🌾</div>
-      <div class="dash-location" id="dash-farmer-location">📍 Location not set</div>
+  <div class="pro-topbar">
+    <div class="pro-logo">🌿 AgriLearn</div>
+    <div class="pro-search-wrap">
+      <input type="text" id="pro-search" placeholder="Search Weather, Crops, Notes, Calendar..." oninput="proSearch(this.value)">
+      <div class="pro-search-results" id="pro-search-results"></div>
     </div>
-    <div class="dash-logout" onclick="logout()" title="Log out">⎋</div>
+    <div class="pro-topbar-actions">
+      <div class="pro-icon-btn" id="theme-toggle-btn" onclick="toggleDarkMode()" title="Toggle dark mode">🌙</div>
+      <div class="pro-icon-btn" onclick="toggleNotifPanel()" title="Notifications">
+        🔔
+      </div>
+      <div class="pro-profile" onclick="toggleProfileMenu()">
+        <div class="pro-avatar" id="pro-avatar">F</div>
+        <span id="pro-profile-name">Farmer</span>
+      </div>
+    </div>
+
+    <div class="pro-panel" id="notif-panel">
+      <div class="pro-panel-title">Notifications</div>
+      <div class="pro-empty">No notifications yet. Updates about weather alerts and crop tips will appear here.</div>
+    </div>
+    <div class="pro-panel" id="profile-panel">
+      <div class="pro-panel-title" id="profile-panel-name">Farmer</div>
+      <div class="pro-panel-sub" id="profile-panel-email">-</div>
+      <div class="pro-panel-item" onclick="showToast('Profile editing is coming soon.')">👤 View Profile</div>
+      <div class="pro-panel-item" onclick="showToast('Settings screen is coming soon.')">⚙️ Settings</div>
+      <div class="pro-panel-item logout-item" onclick="logout()">🚪 Log out</div>
+    </div>
   </div>
 
   <div class="wrap">
-    <div class="dash-weather-strip" id="dash-weather-strip" onclick="goToDashScreen('screen-dash-weather')">
+    <div class="dash-header" style="margin-top:4px;">
+      <div>
+        <div class="dash-greeting">Namaste, <span id="dash-farmer-name">Farmer</span> 🌾</div>
+        <div class="dash-location" id="dash-farmer-location">📍 Location not set</div>
+      </div>
+    </div>
+
+    <div class="dash-weather-strip fade-in-up" id="dash-weather-strip" onclick="goToDashScreen('screen-dash-weather')">
       <div class="dash-weather-icon" id="dash-weather-icon">⛅</div>
       <div class="dash-weather-info">
         <div class="dash-weather-temp" id="dash-weather-temp">--°</div>
@@ -374,34 +436,41 @@
       <div class="dash-weather-arrow">›</div>
     </div>
 
+    <div class="progress-row" id="progress-row"></div>
+
     <div class="feature-grid">
-      <div class="feature-card" onclick="goToDashScreen('screen-dash-weather')">
+      <div class="feature-card fade-in-up" onclick="goToDashScreen('screen-dash-weather')">
         <div class="feature-icon">🌦️</div>
         <div class="feature-title">Weather</div>
         <div class="feature-sub">5-day forecast for your area</div>
       </div>
-      <div class="feature-card" onclick="goToDashScreen('screen-dash-crops')">
+      <div class="feature-card fade-in-up" onclick="goToDashScreen('screen-dash-crops')">
         <div class="feature-icon">🌱</div>
-        <div class="feature-title">Recommended Crops</div>
-        <div class="feature-sub">Based on this season</div>
+        <div class="feature-title">AI Crop Recommendation</div>
+        <div class="feature-sub">Season-based suggestions</div>
       </div>
-      <div class="feature-card" onclick="goToDashScreen('screen-dash-calendar')">
+      <div class="feature-card fade-in-up" onclick="goToDashScreen('screen-dash-notes')">
+        <div class="feature-icon">📝</div>
+        <div class="feature-title">Notes</div>
+        <div class="feature-sub">Save your own farming notes</div>
+      </div>
+      <div class="feature-card fade-in-up" onclick="goToDashScreen('screen-dash-calendar')">
         <div class="feature-icon">📅</div>
         <div class="feature-title">Farming Calendar</div>
         <div class="feature-sub">Month-by-month guide</div>
       </div>
-      <div class="feature-card" onclick="goToDashScreen('screen-dash-ai')">
+      <div class="feature-card fade-in-up" onclick="goToDashScreen('screen-dash-ai')">
         <div class="feature-icon">💬</div>
         <div class="feature-title">Ask Agrii AI</div>
         <div class="feature-sub">Get quick farming answers</div>
       </div>
-      <div class="feature-card locked" onclick="showComingSoon()">
+      <div class="feature-card locked fade-in-up" onclick="showComingSoon()">
         <div class="soon-badge">Soon</div>
         <div class="feature-icon">🦠</div>
         <div class="feature-title">Disease Detection</div>
         <div class="feature-sub">Scan crop photos for disease</div>
       </div>
-      <div class="feature-card" onclick="goToDashScreen('screen-dash-learn')">
+      <div class="feature-card fade-in-up" onclick="goToDashScreen('screen-dash-learn')">
         <div class="feature-icon">📚</div>
         <div class="feature-title">Learn Agriculture</div>
         <div class="feature-sub">Simple guides &amp; tips</div>
@@ -427,13 +496,29 @@
   </div>
 </div>
 
+<!-- ===================== DASH: NOTES ===================== -->
+<div class="screen" id="screen-dash-notes">
+  <div class="topbar">
+    <div class="back" onclick="goTo('screen-farmer-dashboard')">←</div>
+    <div class="brand">📝 <span>My Notes</span></div>
+  </div>
+  <div class="wrap">
+    <div class="notes-add-row">
+      <input type="text" id="note-input" placeholder="Write a quick note (e.g. field observation, reminder)..." onkeypress="if(event.key==='Enter') addNote()">
+      <button class="notes-add-btn" onclick="addNote()">+ Add</button>
+    </div>
+    <div id="notes-list"></div>
+  </div>
+</div>
+
 <!-- ===================== DASH: RECOMMENDED CROPS ===================== -->
 <div class="screen" id="screen-dash-crops">
   <div class="topbar">
     <div class="back" onclick="goTo('screen-farmer-dashboard')">←</div>
-    <div class="brand">🌱 <span>Recommended Crops</span></div>
+    <div class="brand">🌱 <span>AI Crop Recommendation</span></div>
   </div>
   <div class="wrap">
+    <div class="info-banner">🧪 This uses simple season-based rules right now, not a trained AI model yet — a real machine learning model is planned here.</div>
     <div class="info-banner" id="crop-season-banner"></div>
     <div id="crop-list"></div>
     <div class="disclaimer-note">These are general seasonal suggestions for Andhra Pradesh. Please confirm with your local Krishi Vigyan Kendra or agriculture office before sowing, since soil type and water availability vary by field.</div>
@@ -527,6 +612,6 @@
 
 <div class="toast" id="global-toast"></div>
 
-<script src="script_new.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

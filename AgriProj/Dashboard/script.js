@@ -88,7 +88,70 @@ function useLocation(inputId, statusId) {
     { enableHighAccuracy: true, timeout: 10000 }
   );
 }
+/* ============ Age calculation from DOB ============ */
+function calculateAge() {
+    const dob = document.getElementById("s-dob").value;
+    if (!dob) return;
 
+    const birthDate = new Date(dob);
+    const today = new Date();
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+
+    const month = today.getMonth() - birthDate.getMonth();
+
+    if (
+        month < 0 ||
+        (month === 0 && today.getDate() < birthDate.getDate())
+    ) {
+        age--;
+    }
+
+    document.getElementById("s-age").value = age;
+}
+/* ============ College list (for student registration) ============ */
+const colleges = [
+    "Raghu Engineering College",
+    "Andhra University",
+    "Gayatri Vidya Parishad College",
+    "GITAM University",
+    "VIT-AP University",
+    "KL University",
+    "SRKR Engineering College"
+];
+function suggestCollege() {
+
+    const input = document.getElementById("s-college");
+    const list = document.getElementById("college-list");
+
+    const value = input.value.toLowerCase();
+
+    list.innerHTML = "";
+
+    if(value==="") return;
+
+    const matches = colleges.filter(c =>
+        c.toLowerCase().includes(value)
+    );
+
+    matches.forEach(college=>{
+
+        const item=document.createElement("div");
+
+        item.className="college-item";
+
+        item.innerText=college;
+
+        item.onclick=()=>{
+            input.value=college;
+            list.innerHTML="";
+        };
+
+        list.appendChild(item);
+
+    });
+
+}
 /* ============ Existing account check ============ */
 function checkExistingAccount(role) {
   const gmailId = role === 'farmer' ? 'f-gmail' : 's-gmail';
@@ -311,12 +374,16 @@ function showSuccessScreen(gmail, justAddedRole, isNewAccount) {
   goTo('screen-success');
 }
 
-/* ============ Login ============ */
-function doLogin() {
-  const userId = document.getElementById('l-userid').value.trim();
-  const password = document.getElementById('l-password').value;
-  const userIdWrap = document.getElementById('l-userid').closest('.field');
-  const pwWrap = document.getElementById('l-password').closest('.field');
+/* ============ Login (role-specific — prevents cross-role confusion) ============ */
+function doLogin(role) {
+  const prefix = role === 'farmer' ? 'lf' : 'ls';
+  const userIdEl = document.getElementById(prefix + '-userid');
+  const passwordEl = document.getElementById(prefix + '-password');
+  const errEl = document.getElementById(prefix + '-password-err');
+  const userId = userIdEl.value.trim();
+  const password = passwordEl.value;
+  const userIdWrap = userIdEl.closest('.field');
+  const pwWrap = passwordEl.closest('.field');
 
   toggleFieldError(userIdWrap, userId.length === 0);
   if (userId.length === 0) return;
@@ -325,22 +392,29 @@ function doLogin() {
   const match = Object.entries(accounts).find(([g, acc]) => acc.userId === userId && acc.password === password);
 
   if (!match) {
+    errEl.textContent = 'Incorrect User ID or Password.';
     toggleFieldError(pwWrap, true);
     return;
   }
+
+  const [gmail, account] = match;
+  if (!account.profiles[role]) {
+    // Credentials are correct, but this account has no profile of the requested type —
+    // showing this distinctly (instead of a generic "wrong password") avoids exactly
+    // the kind of role confusion that caused data integrity issues before.
+    const otherRole = role === 'farmer' ? 'student' : 'farmer';
+    errEl.textContent = account.profiles[otherRole]
+      ? `This account doesn't have a ${role} profile yet — it's registered as a ${otherRole}. You can add a ${role} profile by registering with the same Gmail.`
+      : `No ${role} account found for this User ID.`;
+    toggleFieldError(pwWrap, true);
+    return;
+  }
+
   toggleFieldError(pwWrap, false);
+  currentSession = gmail;
 
-  currentSession = match[0];
-  const roles = Object.keys(match[1].profiles);
-
-  if (roles.includes('farmer')) {
-    openFarmerDashboard(match[0]);
-    return;
-  }
-  if (roles.includes('student')) {
-    openStudentDashboard(match[0]);
-    return;
-  }
+  if (role === 'farmer') openFarmerDashboard(gmail);
+  else openStudentDashboard(gmail);
 }
 
 function logout() {
@@ -375,6 +449,10 @@ function openFarmerDashboard(gmail) {
 
   document.getElementById('dash-farmer-name').textContent = farmer.name.split(' ')[0];
   document.getElementById('dash-farmer-location').textContent = '📍 ' + (farmer.location || 'Location not set');
+  document.getElementById('pro-profile-name').textContent = farmer.name.split(' ')[0];
+  document.getElementById('pro-avatar').textContent = farmer.name.trim()[0].toUpperCase();
+  document.getElementById('profile-panel-name').textContent = farmer.name;
+  document.getElementById('profile-panel-email').textContent = gmail;
 
   goTo('screen-farmer-dashboard');
   loadDashboardWeather(farmer.location);
@@ -382,6 +460,126 @@ function openFarmerDashboard(gmail) {
   renderCalendar();
   renderLearnTopics();
   initChatIfEmpty();
+  recordVisitAndRenderProgress(gmail);
+  renderNotes();
+}
+
+/* ---- Dark mode (persisted, applied immediately on load to avoid flash) ---- */
+function applyStoredTheme() {
+  const theme = localStorage.getItem('agrilearn_theme') || 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+  const btn = document.getElementById('theme-toggle-btn');
+  if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+function toggleDarkMode() {
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem('agrilearn_theme', next);
+  document.getElementById('theme-toggle-btn').textContent = next === 'dark' ? '☀️' : '🌙';
+}
+applyStoredTheme();
+
+/* ---- Notification / profile dropdown panels ---- */
+function toggleNotifPanel() {
+  document.getElementById('profile-panel').classList.remove('show');
+  document.getElementById('notif-panel').classList.toggle('show');
+}
+function toggleProfileMenu() {
+  document.getElementById('notif-panel').classList.remove('show');
+  document.getElementById('profile-panel').classList.toggle('show');
+}
+document.addEventListener('click', (e) => {
+  const notif = document.getElementById('notif-panel');
+  const profile = document.getElementById('profile-panel');
+  if (!notif || !profile) return;
+  if (!e.target.closest('.pro-icon-btn') && !e.target.closest('.pro-profile') && !e.target.closest('.pro-panel')) {
+    notif.classList.remove('show');
+    profile.classList.remove('show');
+  }
+});
+
+/* ---- Top search (real client-side filter across dashboard features) ---- */
+const searchableFeatures = [
+  { label:'🌦️ Weather', screen:'screen-dash-weather' },
+  { label:'🌱 AI Crop Recommendation', screen:'screen-dash-crops' },
+  { label:'📝 Notes', screen:'screen-dash-notes' },
+  { label:'📅 Farming Calendar', screen:'screen-dash-calendar' },
+  { label:'💬 Ask Agrii AI', screen:'screen-dash-ai' },
+  { label:'📚 Learn Agriculture', screen:'screen-dash-learn' },
+];
+function proSearch(query) {
+  const box = document.getElementById('pro-search-results');
+  const q = query.trim().toLowerCase();
+  if (!q) { box.classList.remove('show'); box.innerHTML = ''; return; }
+  const matches = searchableFeatures.filter(f => f.label.toLowerCase().includes(q));
+  if (matches.length === 0) {
+    box.innerHTML = `<div class="pro-search-result-item">No matches for "${query}"</div>`;
+  } else {
+    box.innerHTML = matches.map(f => `<div class="pro-search-result-item" onclick="goToDashScreen('${f.screen}'); document.getElementById('pro-search').value=''; document.getElementById('pro-search-results').classList.remove('show');">${f.label}</div>`).join('');
+  }
+  box.classList.add('show');
+}
+
+/* ---- Real progress tracking (computed from actual local data, nothing fabricated) ---- */
+function recordVisitAndRenderProgress(gmail) {
+  const key = 'agrilearn_activity_' + gmail;
+  const today = new Date().toISOString().slice(0, 10);
+  let activity = JSON.parse(localStorage.getItem(key) || '{"daysVisited":[],"streak":0}');
+
+  if (!activity.daysVisited.includes(today)) {
+    activity.daysVisited.push(today);
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    activity.streak = activity.daysVisited.includes(yesterday) ? (activity.streak || 0) + 1 : 1;
+    localStorage.setItem(key, JSON.stringify(activity));
+  }
+
+  const notesCount = getNotes(gmail).length;
+  const grid = document.getElementById('progress-row');
+  grid.innerHTML = `
+    <div class="progress-card fade-in-up"><div class="p-icon">🔥</div><div><div class="p-value">${activity.streak}</div><div class="p-label">Day streak</div></div></div>
+    <div class="progress-card fade-in-up"><div class="p-icon">📝</div><div><div class="p-value">${notesCount}</div><div class="p-label">Notes saved</div></div></div>
+    <div class="progress-card fade-in-up"><div class="p-icon">📅</div><div><div class="p-value">${activity.daysVisited.length}</div><div class="p-label">Days visited</div></div></div>
+  `;
+}
+
+/* ---- Notes (real localStorage-backed CRUD, per account) ---- */
+function getNotes(gmail) {
+  return JSON.parse(localStorage.getItem('agrilearn_notes_' + gmail) || '[]');
+}
+function saveNotes(gmail, notes) {
+  localStorage.setItem('agrilearn_notes_' + gmail, JSON.stringify(notes));
+}
+function addNote() {
+  const input = document.getElementById('note-input');
+  const text = input.value.trim();
+  if (!text || !currentSession) return;
+  const notes = getNotes(currentSession);
+  notes.unshift({ id: Date.now(), text, date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) });
+  saveNotes(currentSession, notes);
+  input.value = '';
+  renderNotes();
+}
+function deleteNote(id) {
+  const notes = getNotes(currentSession).filter(n => n.id !== id);
+  saveNotes(currentSession, notes);
+  renderNotes();
+}
+function renderNotes() {
+  if (!currentSession) return;
+  const notes = getNotes(currentSession);
+  const list = document.getElementById('notes-list');
+  if (!list) return;
+  if (notes.length === 0) {
+    list.innerHTML = `<div class="notes-empty">No notes yet. Add your first one above — field observations, reminders, anything.</div>`;
+    return;
+  }
+  list.innerHTML = notes.map(n => `
+    <div class="note-card">
+      <div><div class="note-text">${n.text}</div><div class="note-meta">${n.date}</div></div>
+      <div class="note-delete" onclick="deleteNote(${n.id})" title="Delete">🗑️</div>
+    </div>
+  `).join('');
 }
 
 /* ---- Weather (mini strip + full screen), reusing the SkyCast approach ---- */
