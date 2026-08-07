@@ -34,6 +34,7 @@
     <div class="landing-login">
       Already registered? <a onclick="goTo('screen-login-farmer')">🌾 Farmer Login</a> · <a onclick="goTo('screen-login-student')">🎓 Student Login</a>
     </div>
+    <div class="admin-entry-link"><a onclick="goTo('screen-admin-login')">Admin</a></div>
   </div>
 </div>
 
@@ -49,7 +50,7 @@
       <div class="sub">Takes about 2 minutes. All fields marked * are required.</div>
 
       <div id="farmer-account-banner" class="account-found-banner">
-        ✓ We found an existing account with this Gmail. You won't need to set a new password — we'll just add your Farmer profile to it.
+        ✓ We found an existing account with this Gmail. Enter its password below to securely link your Farmer profile to it.
       </div>
 
       <div class="field">
@@ -65,7 +66,7 @@
       </div>
 
       <div class="row-2">
-        <div class="field">
+        <div class="field" id="f-userid-field">
           <label>User ID *</label>
           <input type="text" id="f-userid" placeholder="Choose a User ID">
           <div class="error-msg">Choose a User ID (min 4 characters)</div>
@@ -89,12 +90,12 @@
 
       <div id="f-password-fields">
         <div class="field">
-          <label>Password *</label>
+          <label id="f-password-label">Password *</label>
           <input type="password" id="f-password" placeholder="At least 6 characters" oninput="checkPwStrength('f-password','f-pw-fill')">
-          <div class="pw-strength"><div class="pw-strength-fill" id="f-pw-fill"></div></div>
+          <div class="pw-strength" id="f-pw-strength-wrap"><div class="pw-strength-fill" id="f-pw-fill"></div></div>
           <div class="error-msg">Password must be at least 6 characters</div>
         </div>
-        <div class="field">
+        <div class="field" id="f-password-confirm-field">
           <label>Confirm Password *</label>
           <input type="password" id="f-password-confirm" placeholder="Re-enter your password">
           <div class="error-msg">Passwords do not match</div>
@@ -139,7 +140,7 @@
       <div class="sub">Takes about 2 minutes. All fields marked * are required.</div>
 
       <div id="student-account-banner" class="account-found-banner">
-        ✓ We found an existing account with this Gmail. You won't need to set a new password — we'll just add your Student profile to it.
+        ✓ We found an existing account with this Gmail. Enter its password below to securely link your Student profile to it.
       </div>
 
       <div class="field">
@@ -183,7 +184,7 @@
           <input type="tel" id="s-phone" placeholder="10-digit number" maxlength="10">
           <div class="error-msg">Enter a valid 10-digit phone number</div>
         </div>
-        <div class="field">
+        <div class="field" id="s-userid-field">
           <label>User ID *</label>
           <input type="text" id="s-userid" placeholder="Choose a User ID">
           <div class="error-msg">Choose a User ID (min 4 characters)</div>
@@ -192,12 +193,12 @@
 
       <div id="s-password-fields">
         <div class="field">
-          <label>Password *</label>
+          <label id="s-password-label">Password *</label>
           <input type="password" id="s-password" placeholder="At least 6 characters" oninput="checkPwStrength('s-password','s-pw-fill')">
-          <div class="pw-strength"><div class="pw-strength-fill" id="s-pw-fill"></div></div>
+          <div class="pw-strength" id="s-pw-strength-wrap"><div class="pw-strength-fill" id="s-pw-fill"></div></div>
           <div class="error-msg">Password must be at least 6 characters</div>
         </div>
-        <div class="field">
+        <div class="field" id="s-password-confirm-field">
           <label>Confirm Password *</label>
           <input type="password" id="s-password-confirm" placeholder="Re-enter your password">
           <div class="error-msg">Passwords do not match</div>
@@ -289,7 +290,7 @@ autocomplete="off">
       <h2>Enter the 6-digit OTP</h2>
       <div class="sub" id="otp-sub">We've sent a code to your phone number</div>
 
-      <div class="otp-demo-note">
+      <div class="otp-demo-note" id="otp-demo-note">
         Demo mode — no SMS is connected yet, so here's your code:
         <div class="code" id="otp-demo-code">------</div>
       </div>
@@ -337,7 +338,8 @@ autocomplete="off">
         <div class="error-msg" id="lf-password-err">Incorrect User ID or Password</div>
       </div>
 
-      <button class="btn-primary farmer-btn" onclick="doLogin('farmer')">Log In as Farmer</button>
+      <button class="btn-primary farmer-btn" id="lf-login-btn" onclick="doLogin('farmer')">Log In as Farmer</button>
+      <div class="forgot-link"><a onclick="goTo('screen-forgot-farmer')">Forgot password?</a></div>
     </div>
     <div class="foot-link">New here? <a onclick="goTo('screen-farmer-register')">Register as a Farmer</a></div>
     <div class="foot-link">Looking for the Student portal? <a onclick="goTo('screen-login-student')">Student Login</a></div>
@@ -366,16 +368,165 @@ autocomplete="off">
         <div class="error-msg" id="ls-password-err">Incorrect User ID or Password</div>
       </div>
 
-      <button class="btn-primary student-btn" onclick="doLogin('student')">Log In as Student</button>
+      <button class="btn-primary student-btn" id="ls-login-btn" onclick="doLogin('student')">Log In as Student</button>
+      <div class="forgot-link"><a onclick="goTo('screen-forgot-student')">Forgot password?</a></div>
     </div>
     <div class="foot-link">New here? <a onclick="goTo('screen-student-register')">Register as a Student</a></div>
     <div class="foot-link">Looking for the Farmer portal? <a onclick="goTo('screen-login-farmer')">Farmer Login</a></div>
   </div>
 </div>
 
+<!-- ===================== FORGOT PASSWORD: FARMER ===================== -->
+<div class="screen" id="screen-forgot-farmer">
+  <div class="topbar">
+    <div class="back" onclick="goTo('screen-login-farmer')">←</div>
+    <div class="brand">🌾 <span>Reset Farmer Password</span></div>
+  </div>
+  <div class="wrap">
+    <div class="form-card">
+      <h2>Forgot your password?</h2>
+      <div class="sub">Enter your User ID and the phone number on your account — we'll send a reset code by SMS.</div>
+
+      <div class="field">
+        <label>User ID *</label>
+        <input type="text" id="ff-userid" placeholder="Your User ID">
+      </div>
+      <div class="field">
+        <label>Phone Number *</label>
+        <input type="tel" id="ff-phone" placeholder="10-digit number on your account" maxlength="10">
+      </div>
+      <div class="error-msg" id="ff-err" style="display:none; margin-bottom:14px;"></div>
+
+      <button class="btn-primary farmer-btn" id="ff-submit-btn" onclick="requestPasswordReset('farmer')">Send Reset Code</button>
+    </div>
+    <div class="foot-link">Remembered it? <a onclick="goTo('screen-login-farmer')">Back to Login</a></div>
+  </div>
+</div>
+
+<!-- ===================== FORGOT PASSWORD: STUDENT ===================== -->
+<div class="screen" id="screen-forgot-student">
+  <div class="topbar">
+    <div class="back" onclick="goTo('screen-login-student')">←</div>
+    <div class="brand">🎓 <span>Reset Student Password</span></div>
+  </div>
+  <div class="wrap">
+    <div class="form-card">
+      <h2>Forgot your password?</h2>
+      <div class="sub">Enter your User ID and the phone number on your account — we'll send a reset code by SMS.</div>
+
+      <div class="field">
+        <label>User ID *</label>
+        <input type="text" id="fs-userid" placeholder="Your User ID">
+      </div>
+      <div class="field">
+        <label>Phone Number *</label>
+        <input type="tel" id="fs-phone" placeholder="10-digit number on your account" maxlength="10">
+      </div>
+      <div class="error-msg" id="fs-err" style="display:none; margin-bottom:14px;"></div>
+
+      <button class="btn-primary student-btn" id="fs-submit-btn" onclick="requestPasswordReset('student')">Send Reset Code</button>
+    </div>
+    <div class="foot-link">Remembered it? <a onclick="goTo('screen-login-student')">Back to Login</a></div>
+  </div>
+</div>
+
+<!-- ===================== SET NEW PASSWORD: FARMER ===================== -->
+<div class="screen" id="screen-reset-password-farmer">
+  <div class="topbar">
+    <div class="back" onclick="goTo('screen-login-farmer')">←</div>
+    <div class="brand">🌾 <span>Set New Password</span></div>
+  </div>
+  <div class="wrap">
+    <div class="form-card">
+      <h2>Choose a new password</h2>
+      <div class="sub">Your code is verified. Set a new password for your Farmer account.</div>
+
+      <div class="field">
+        <label>New Password *</label>
+        <input type="password" id="rf-password" placeholder="At least 6 characters">
+      </div>
+      <div class="field">
+        <label>Confirm New Password *</label>
+        <input type="password" id="rf-password-confirm" placeholder="Re-enter new password">
+      </div>
+      <div class="error-msg" id="rf-err" style="display:none; margin-bottom:14px;"></div>
+
+      <button class="btn-primary farmer-btn" id="rf-submit-btn" onclick="submitNewPassword('farmer')">Set New Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== SET NEW PASSWORD: STUDENT ===================== -->
+<div class="screen" id="screen-reset-password-student">
+  <div class="topbar">
+    <div class="back" onclick="goTo('screen-login-student')">←</div>
+    <div class="brand">🎓 <span>Set New Password</span></div>
+  </div>
+  <div class="wrap">
+    <div class="form-card">
+      <h2>Choose a new password</h2>
+      <div class="sub">Your code is verified. Set a new password for your Student account.</div>
+
+      <div class="field">
+        <label>New Password *</label>
+        <input type="password" id="rs-password" placeholder="At least 6 characters">
+      </div>
+      <div class="field">
+        <label>Confirm New Password *</label>
+        <input type="password" id="rs-password-confirm" placeholder="Re-enter new password">
+      </div>
+      <div class="error-msg" id="rs-err" style="display:none; margin-bottom:14px;"></div>
+
+      <button class="btn-primary student-btn" id="rs-submit-btn" onclick="submitNewPassword('student')">Set New Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== ADMIN LOGIN ===================== -->
+<div class="screen" id="screen-admin-login">
+  <div class="topbar">
+    <div class="back" onclick="goTo('screen-landing')">←</div>
+    <div class="brand">🛡️ <span>Admin Login</span></div>
+  </div>
+  <div class="wrap">
+    <div class="form-card">
+      <h2>Admin Access</h2>
+      <div class="sub">Restricted to platform administrators.</div>
+
+      <div class="field">
+        <label>Username *</label>
+        <input type="text" id="admin-username" placeholder="Admin username">
+      </div>
+      <div class="field">
+        <label>Password *</label>
+        <input type="password" id="admin-password" placeholder="Admin password">
+      </div>
+      <div class="error-msg" id="admin-login-err" style="display:none; margin-bottom:14px;"></div>
+
+      <button class="btn-primary farmer-btn" id="admin-login-btn" onclick="adminLogin()">Log In</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== ADMIN DASHBOARD ===================== -->
+<div class="screen" id="screen-admin-dashboard">
+  <div class="sd-topbar">
+    <div class="sd-logo">🛡️ AgriLearn Admin</div>
+    <div class="sd-title">Registration Overview</div>
+    <div class="sd-topbar-icons">
+      <span title="Refresh" onclick="loadAdminStats()">🔄</span>
+      <span title="Log out" onclick="adminLogout()">🚪</span>
+    </div>
+  </div>
+  <div class="admin-main" id="admin-dashboard-body">
+    <div class="admin-loading">Loading real registration data...</div>
+  </div>
+</div>
+
 <!-- ===================== SUCCESS ===================== -->
 <div class="screen" id="screen-success">
   <div class="wrap">
+
     <div class="form-card success-card">
       <div class="success-icon">✅</div>
       <h2 id="success-title">You're all set!</h2>

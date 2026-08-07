@@ -1,22 +1,78 @@
-/* ============ Storage (demo only — replace with real backend) ============ */
-function getAccounts() {
-  return JSON.parse(localStorage.getItem('agrilearn_accounts') || '{}');
+/* ============ Real backend API layer ============ */
+// Points at your local backend by default (see backend/README.md to run it).
+// Change this once you deploy the backend somewhere public.
+const API_BASE_URL = 'http://localhost:4000/api';
+
+let authToken = localStorage.getItem('agrilearn_token') || null;
+
+async function apiCall(path, method = 'GET', body = null) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (authToken) headers['Authorization'] = 'Bearer ' + authToken;
+
+  let res;
+  try {
+    res = await fetch(API_BASE_URL + path, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch (networkErr) {
+    // The backend isn't reachable at all — most likely it isn't running yet.
+    throw new Error('Could not reach the server. Make sure the backend is running (see backend/README.md).');
+  }
+
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+  return data;
 }
-function saveAccounts(accounts) {
-  localStorage.setItem('agrilearn_accounts', JSON.stringify(accounts));
+
+function setAuthToken(token) {
+  authToken = token;
+  if (token) localStorage.setItem('agrilearn_token', token);
+  else localStorage.removeItem('agrilearn_token');
+}
+
+let adminToken = localStorage.getItem('agrilearn_admin_token') || null;
+async function adminApiCall(path, method = 'GET', body = null) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (adminToken) headers['Authorization'] = 'Bearer ' + adminToken;
+  let res;
+  try {
+    res = await fetch(API_BASE_URL + path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+  } catch (e) {
+    throw new Error('Could not reach the server. Make sure the backend is running.');
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+  return data;
+}
+function setAdminToken(token) {
+  adminToken = token;
+  if (token) localStorage.setItem('agrilearn_admin_token', token);
+  else localStorage.removeItem('agrilearn_admin_token');
 }
 
 /* ============ Navigation ============ */
 let pendingRegistration = null; // { role: 'farmer'|'student', data: {...}, isNewAccount: bool }
-let currentSession = null;
+let pendingResetPhone = null;
+let pendingResetRole = null;
+let pendingResetUserId = null;
+let pendingResetCode = null;
+let resendTimerInterval = null;
+let currentSession = null; // { role, gmail/userId, name, ...profile fields } — set after real login
 
 function goTo(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  const target = document.getElementById(id);
+  target.classList.add('active');
+  target.classList.remove('screen-transition');
+  void target.offsetWidth; // restart animation
+  target.classList.add('screen-transition');
   window.scrollTo(0,0);
 }
 function goToPendingForm() {
   if (pendingRegistration) goTo('screen-' + pendingRegistration.role + '-register');
+  else if (pendingResetRole) goTo('screen-forgot-' + pendingResetRole);
   else goTo('screen-landing');
 }
 
@@ -153,20 +209,31 @@ function suggestCollege() {
 
 }
 /* ============ Existing account check ============ */
-function checkExistingAccount(role) {
-  const gmailId = role === 'farmer' ? 'f-gmail' : 's-gmail';
-  const gmail = document.getElementById(gmailId).value.trim().toLowerCase();
+async function checkExistingAccount(role) {
+  const p = role === 'farmer' ? 'f' : 's';
+  const gmail = document.getElementById(p + '-gmail').value.trim().toLowerCase();
   const banner = document.getElementById(role + '-account-banner');
-  const pwFields = document.getElementById((role === 'farmer' ? 'f' : 's') + '-password-fields');
-  const accounts = getAccounts();
+  if (!gmail || !/^[^\s@]+@gmail\.com$/i.test(gmail)) { setLinkingMode(p, false); return; }
 
-  if (gmail && accounts[gmail]) {
-    banner.classList.add('show');
-    pwFields.style.display = 'none';
-  } else {
-    banner.classList.remove('show');
-    pwFields.style.display = 'block';
+  try {
+    const { exists } = await apiCall('/check-gmail?gmail=' + encodeURIComponent(gmail));
+    setLinkingMode(p, exists);
+    banner.classList.toggle('show', exists);
+  } catch (e) {
+    // If the backend isn't reachable, just proceed as a normal new registration.
+    setLinkingMode(p, false);
   }
+}
+// When an account already exists for this Gmail, we ask for the EXISTING
+// password (to prove ownership) instead of letting anyone silently attach a
+// new profile to someone else's account — that was a real security gap in
+// the old localStorage version.
+function setLinkingMode(p, isLinking) {
+  document.getElementById(p + '-userid-field').style.display = isLinking ? 'none' : 'block';
+  document.getElementById(p + '-password-confirm-field').style.display = isLinking ? 'none' : 'block';
+  document.getElementById(p + '-pw-strength-wrap').style.display = isLinking ? 'none' : 'block';
+  document.getElementById(p + '-password-label').textContent = isLinking ? 'Enter your existing account password *' : 'Password *';
+  document.getElementById(p + '-password-fields').dataset.linking = isLinking ? 'true' : 'false';
 }
 
 /* ============ Field error helper ============ */
@@ -178,9 +245,8 @@ function toggleFieldError(el, hasError) {
 /* ============ Registration submit + validation ============ */
 function submitRegistration(role) {
   const p = role === 'farmer' ? 'f' : 's';
-  const accounts = getAccounts();
-  const gmail = document.getElementById(p + '-gmail').value.trim().toLowerCase();
-  const isNewAccount = !(gmail && accounts[gmail]);
+  const isLinking = document.getElementById(p + '-password-fields').dataset.linking === 'true';
+  const isNewAccount = !isLinking;
   let valid = true;
 
   function req(id) {
@@ -193,6 +259,7 @@ function submitRegistration(role) {
   }
 
   // Common fields
+  const gmail = document.getElementById(p + '-gmail').value.trim().toLowerCase();
   const gmailOk = /^[^\s@]+@gmail\.com$/i.test(gmail);
   toggleFieldError(document.getElementById(p + '-gmail').closest('.field'), !gmailOk);
   if (!gmailOk) valid = false;
@@ -210,6 +277,7 @@ function submitRegistration(role) {
   toggleFieldError(document.getElementById(p + '-phone').closest('.field'), !phoneOk);
   if (!phoneOk) valid = false;
 
+  let existingPassword = '';
   if (isNewAccount) {
     const useridVal = document.getElementById(p + '-userid').value.trim();
     const useridOk = useridVal.length >= 4;
@@ -225,6 +293,11 @@ function submitRegistration(role) {
     const pwMatch = pw === pwConfirm && pwConfirm.length > 0;
     toggleFieldError(document.getElementById(p + '-password-confirm').closest('.field'), !pwMatch);
     if (!pwMatch) valid = false;
+  } else {
+    existingPassword = document.getElementById(p + '-password').value;
+    const pwOk = existingPassword.length > 0;
+    toggleFieldError(document.getElementById(p + '-password').closest('.field'), !pwOk);
+    if (!pwOk) valid = false;
   }
 
   // Role-specific fields
@@ -267,34 +340,45 @@ function submitRegistration(role) {
   if (isNewAccount) {
     data.userId = document.getElementById(p + '-userid').value.trim();
     data.password = document.getElementById(p + '-password').value;
+  } else {
+    data.existingPassword = existingPassword;
   }
 
   pendingRegistration = { role, data, isNewAccount, gmail };
   startOtpFlow(phoneVal);
 }
 
-/* ============ OTP flow ============ */
-let currentOtp = '';
-let resendTimerInterval = null;
-
-function startOtpFlow(phone) {
+/* ============ OTP flow (real backend, with dev-mode fallback shown in UI) ============ */
+async function startOtpFlow(phone) {
   document.getElementById('otp-sub').textContent = `We've sent a code to ${phone ? '••••••' + phone.slice(-4) : 'your phone'}`;
-  generateAndShowOtp();
   document.querySelectorAll('.otp-digit').forEach(d => d.value = '');
   document.getElementById('otp-error-msg').style.display = 'none';
-  startResendCountdown();
   goTo('screen-otp');
+  await requestOtp(phone);
 }
 
-function generateAndShowOtp() {
-  currentOtp = String(Math.floor(100000 + Math.random() * 900000));
-  document.getElementById('otp-demo-code').textContent = currentOtp;
+async function requestOtp(phone) {
+  const noteEl = document.getElementById('otp-demo-note');
+  const codeEl = document.getElementById('otp-demo-code');
+  try {
+    const result = await apiCall('/otp/send', 'POST', { phone, purpose: 'register' });
+    if (result.devOtp) {
+      noteEl.style.display = 'block';
+      codeEl.textContent = result.devOtp;
+    } else {
+      noteEl.style.display = 'none';
+    }
+    startResendCountdown();
+  } catch (err) {
+    document.getElementById('otp-error-msg').textContent = err.message;
+    document.getElementById('otp-error-msg').style.display = 'block';
+  }
 }
 
 function resendOtp() {
   if (document.getElementById('resend-link').classList.contains('disabled')) return;
-  generateAndShowOtp();
-  startResendCountdown();
+  const phone = pendingRegistration ? pendingRegistration.data.phone : pendingResetPhone;
+  requestOtp(phone);
 }
 
 function startResendCountdown() {
@@ -319,63 +403,153 @@ function otpMove(el, index) {
   }
 }
 
-function verifyOtp() {
+async function verifyOtp() {
   const digits = Array.from(document.querySelectorAll('.otp-digit')).map(d => d.value).join('');
   const errEl = document.getElementById('otp-error-msg');
-  if (digits.length !== 6 || digits !== currentOtp) {
+  if (digits.length !== 6) {
+    errEl.textContent = "Enter all 6 digits.";
     errEl.style.display = 'block';
     return;
   }
-  errEl.style.display = 'none';
-  finalizeRegistration();
-}
 
-function finalizeRegistration() {
-  const { role, data, isNewAccount, gmail } = pendingRegistration;
-  const accounts = getAccounts();
+  const btn = document.getElementById('otp-verify-btn');
+  btn.disabled = true; btn.textContent = 'Verifying...';
+  try {
+    const phone = pendingRegistration ? pendingRegistration.data.phone : pendingResetPhone;
+    const purpose = pendingRegistration ? 'register' : 'reset';
+    await apiCall('/otp/verify', 'POST', { phone, code: digits, purpose });
+    errEl.style.display = 'none';
 
-  if (isNewAccount) {
-    accounts[gmail] = { userId: data.userId, password: data.password, profiles: {} };
+    if (pendingRegistration) {
+      await finalizeRegistration();
+    } else {
+      // Forgot-password flow: OTP confirmed, move on to setting a new password
+      pendingResetCode = digits;
+      goTo(pendingResetRole === 'farmer' ? 'screen-reset-password-farmer' : 'screen-reset-password-student');
+    }
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = pendingRegistration ? 'Verify & Create Account' : 'Verify Code';
   }
-  accounts[gmail].profiles[role] = data;
-  saveAccounts(accounts);
-
-  currentSession = gmail;
-  showSuccessScreen(gmail, role, isNewAccount);
 }
 
-function showSuccessScreen(gmail, justAddedRole, isNewAccount) {
-  const accounts = getAccounts();
-  const account = accounts[gmail];
-  const roles = Object.keys(account.profiles);
+async function finalizeRegistration() {
+  const { role, data, gmail } = pendingRegistration;
+  const btn = document.getElementById('otp-verify-btn');
+  try {
+    const endpoint = role === 'farmer' ? '/register/farmer' : '/register/student';
+    const result = await apiCall(endpoint, 'POST', data);
+    setAuthToken(result.token);
+    currentSession = { role, gmail, userId: result.userId, ...data };
+    showSuccessScreen(role, result.isNewAccount, result.userId, data.name);
+  } catch (err) {
+    const errEl = document.getElementById('otp-error-msg');
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  }
+}
 
+function showSuccessScreen(role, isNewAccount, userId, name) {
   document.getElementById('success-title').textContent = isNewAccount ? "You're all set!" : 'Profile added!';
   document.getElementById('success-sub').textContent = isNewAccount
-    ? `Welcome, ${account.profiles[justAddedRole].name}. Your User ID is "${account.userId}" — keep it safe.`
-    : `Your ${justAddedRole} profile has been linked to your existing account.`;
+    ? `Welcome, ${name}. Your User ID is "${userId}" — keep it safe.`
+    : `Your ${role} profile has been linked to your existing account.`;
 
-  const rolesEl = document.getElementById('success-roles');
-  rolesEl.innerHTML = roles.map(r =>
-    `<span class="role-chip ${r}">${r === 'farmer' ? '🌾 Farmer' : '🎓 Student'} profile active</span>`
-  ).join('');
+  document.getElementById('success-roles').innerHTML =
+    `<span class="role-chip ${role}">${role === 'farmer' ? '🌾 Farmer' : '🎓 Student'} profile active</span>`;
 
   const continueBtn = document.getElementById('success-continue-btn');
-  if (roles.includes('farmer')) {
+  if (role === 'farmer') {
     continueBtn.textContent = 'Go to My Farmer Dashboard';
-    continueBtn.onclick = () => openFarmerDashboard(gmail);
-  } else if (roles.includes('student')) {
-    continueBtn.textContent = 'Go to My Student Dashboard';
-    continueBtn.onclick = () => openStudentDashboard(gmail);
+    continueBtn.onclick = () => openFarmerDashboard();
   } else {
-    continueBtn.textContent = 'Continue';
-    continueBtn.onclick = () => goTo('screen-landing');
+    continueBtn.textContent = 'Go to My Student Dashboard';
+    continueBtn.onclick = () => openStudentDashboard();
   }
 
   goTo('screen-success');
 }
 
-/* ============ Login (role-specific — prevents cross-role confusion) ============ */
-function doLogin(role) {
+/* ============ Forgot password (OTP-based reset — never texts the actual password) ============ */
+async function requestPasswordReset(role) {
+  const p = role === 'farmer' ? 'ff' : 'fs'; // ff = forgot-farmer, fs = forgot-student
+  const userId = document.getElementById(p + '-userid').value.trim();
+  const phone = document.getElementById(p + '-phone').value.trim();
+  const errEl = document.getElementById(p + '-err');
+  const btn = document.getElementById(p + '-submit-btn');
+
+  if (!userId || !/^[0-9]{10}$/.test(phone)) {
+    errEl.textContent = 'Enter your User ID and the 10-digit phone number on your account.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Sending code...';
+  try {
+    await apiCall('/forgot-password/request', 'POST', { userId, phone });
+    errEl.style.display = 'none';
+    pendingRegistration = null;
+    pendingResetPhone = phone;
+    pendingResetRole = role;
+    pendingResetUserId = userId;
+
+    document.getElementById('otp-sub').textContent = `We've sent a reset code to ••••••${phone.slice(-4)}`;
+    document.getElementById('otp-verify-btn').textContent = 'Verify Code';
+    document.querySelectorAll('.otp-digit').forEach(d => d.value = '');
+    document.getElementById('otp-error-msg').style.display = 'none';
+    goTo('screen-otp');
+    await requestOtp(phone); // reuses the same OTP-send plumbing (purpose is inferred as 'reset' in verifyOtp since pendingRegistration is null)
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send Reset Code';
+  }
+}
+
+async function submitNewPassword(role) {
+  const p = role === 'farmer' ? 'rf' : 'rs'; // rf = reset-farmer, rs = reset-student
+  const pw = document.getElementById(p + '-password').value;
+  const pwConfirm = document.getElementById(p + '-password-confirm').value;
+  const errEl = document.getElementById(p + '-err');
+  const btn = document.getElementById(p + '-submit-btn');
+
+  if (pw.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
+  if (pw !== pwConfirm) { errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return; }
+
+  btn.disabled = true; btn.textContent = 'Updating...';
+  try {
+    await apiCall('/forgot-password/reset', 'POST', {
+      userId: pendingResetUserId, phone: pendingResetPhone, code: pendingResetCode, newPassword: pw,
+    });
+    errEl.style.display = 'none';
+    showToastGlobal('✅ Password updated. Please log in with your new password.');
+    pendingResetPhone = null; pendingResetRole = null; pendingResetUserId = null; pendingResetCode = null;
+    goTo(role === 'farmer' ? 'screen-login-farmer' : 'screen-login-student');
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Set New Password';
+  }
+}
+// Small standalone toast helper usable even before the farmer dashboard (and
+// its #global-toast element) has been reached — falls back to alert() if the
+// toast element genuinely isn't on the page yet.
+function showToastGlobal(message) {
+  const toast = document.getElementById('global-toast');
+  if (!toast) { alert(message); return; }
+  toast.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
+}
+
+
+async function doLogin(role) {
   const prefix = role === 'farmer' ? 'lf' : 'ls';
   const userIdEl = document.getElementById(prefix + '-userid');
   const passwordEl = document.getElementById(prefix + '-password');
@@ -384,41 +558,32 @@ function doLogin(role) {
   const password = passwordEl.value;
   const userIdWrap = userIdEl.closest('.field');
   const pwWrap = passwordEl.closest('.field');
+  const btn = document.getElementById(prefix + '-login-btn');
 
   toggleFieldError(userIdWrap, userId.length === 0);
   if (userId.length === 0) return;
 
-  const accounts = getAccounts();
-  const match = Object.entries(accounts).find(([g, acc]) => acc.userId === userId && acc.password === password);
+  if (btn) { btn.disabled = true; btn.textContent = 'Logging in...'; }
+  try {
+    const endpoint = role === 'farmer' ? '/login/farmer' : '/login/student';
+    const result = await apiCall(endpoint, 'POST', { userId, password });
+    toggleFieldError(pwWrap, false);
+    setAuthToken(result.token);
+    currentSession = { role, userId, ...result.profile };
 
-  if (!match) {
-    errEl.textContent = 'Incorrect User ID or Password.';
+    if (role === 'farmer') openFarmerDashboard();
+    else openStudentDashboard();
+  } catch (err) {
+    errEl.textContent = err.message;
     toggleFieldError(pwWrap, true);
-    return;
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Log In as ' + (role === 'farmer' ? 'Farmer' : 'Student'); }
   }
-
-  const [gmail, account] = match;
-  if (!account.profiles[role]) {
-    // Credentials are correct, but this account has no profile of the requested type —
-    // showing this distinctly (instead of a generic "wrong password") avoids exactly
-    // the kind of role confusion that caused data integrity issues before.
-    const otherRole = role === 'farmer' ? 'student' : 'farmer';
-    errEl.textContent = account.profiles[otherRole]
-      ? `This account doesn't have a ${role} profile yet — it's registered as a ${otherRole}. You can add a ${role} profile by registering with the same Gmail.`
-      : `No ${role} account found for this User ID.`;
-    toggleFieldError(pwWrap, true);
-    return;
-  }
-
-  toggleFieldError(pwWrap, false);
-  currentSession = gmail;
-
-  if (role === 'farmer') openFarmerDashboard(gmail);
-  else openStudentDashboard(gmail);
 }
 
 function logout() {
   currentSession = null;
+  setAuthToken(null);
   goTo('screen-landing');
 }
 
@@ -442,17 +607,14 @@ function showComingSoon() {
   showToast('🦠 Disease Detection is coming soon — photo-based crop disease scanning is in the works!');
 }
 
-function openFarmerDashboard(gmail) {
-  currentSession = gmail;
-  const accounts = getAccounts();
-  const farmer = accounts[gmail].profiles.farmer;
-
+function openFarmerDashboard() {
+  const farmer = currentSession;
   document.getElementById('dash-farmer-name').textContent = farmer.name.split(' ')[0];
   document.getElementById('dash-farmer-location').textContent = '📍 ' + (farmer.location || 'Location not set');
   document.getElementById('pro-profile-name').textContent = farmer.name.split(' ')[0];
   document.getElementById('pro-avatar').textContent = farmer.name.trim()[0].toUpperCase();
   document.getElementById('profile-panel-name').textContent = farmer.name;
-  document.getElementById('profile-panel-email').textContent = gmail;
+  document.getElementById('profile-panel-email').textContent = farmer.gmail || farmer.userId;
 
   goTo('screen-farmer-dashboard');
   loadDashboardWeather(farmer.location);
@@ -460,7 +622,7 @@ function openFarmerDashboard(gmail) {
   renderCalendar();
   renderLearnTopics();
   initChatIfEmpty();
-  recordVisitAndRenderProgress(gmail);
+  recordVisitAndRenderProgress(farmer.userId);
   renderNotes();
 }
 
@@ -554,20 +716,20 @@ function addNote() {
   const input = document.getElementById('note-input');
   const text = input.value.trim();
   if (!text || !currentSession) return;
-  const notes = getNotes(currentSession);
+  const notes = getNotes(currentSession.userId);
   notes.unshift({ id: Date.now(), text, date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) });
-  saveNotes(currentSession, notes);
+  saveNotes(currentSession.userId, notes);
   input.value = '';
   renderNotes();
 }
 function deleteNote(id) {
-  const notes = getNotes(currentSession).filter(n => n.id !== id);
-  saveNotes(currentSession, notes);
+  const notes = getNotes(currentSession.userId).filter(n => n.id !== id);
+  saveNotes(currentSession.userId, notes);
   renderNotes();
 }
 function renderNotes() {
   if (!currentSession) return;
-  const notes = getNotes(currentSession);
+  const notes = getNotes(currentSession.userId);
   const list = document.getElementById('notes-list');
   if (!list) return;
   if (notes.length === 0) {
@@ -595,6 +757,11 @@ const dashWeatherMap = {
 function dashGetWeather(code){ return dashWeatherMap[code] || {icon:'🌡️',desc:'Unknown'}; }
 
 async function loadDashboardWeather(locationText) {
+  const stripTemp = document.getElementById('dash-weather-temp');
+  const stripDesc = document.getElementById('dash-weather-desc');
+  stripTemp.classList.add('skeleton');
+  stripDesc.classList.add('skeleton');
+
   try {
     let lat, lon;
     // Try to geocode the saved location text; fall back to Visakhapatnam if it fails
@@ -608,6 +775,9 @@ async function loadDashboardWeather(locationText) {
 
     const wRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=5`);
     const wData = await wRes.json();
+
+    stripTemp.classList.remove('skeleton');
+    stripDesc.classList.remove('skeleton');
 
     const cur = wData.current;
     const w = dashGetWeather(cur.weather_code);
@@ -639,6 +809,8 @@ async function loadDashboardWeather(locationText) {
     }
   } catch (e) {
     console.error(e);
+    stripTemp.classList.remove('skeleton');
+    stripDesc.classList.remove('skeleton');
     document.getElementById('dash-weather-desc').textContent = 'Could not load weather right now';
   }
 }
@@ -815,11 +987,8 @@ const agriTopics = [
   { icon:'🧪', title:'Agri Biotechnology', sub:'An introduction to modern crop science techniques' },
 ];
 
-function openStudentDashboard(gmail) {
-  currentSession = gmail;
-  const accounts = getAccounts();
-  const student = accounts[gmail].profiles.student;
-
+function openStudentDashboard() {
+  const student = currentSession;
   document.getElementById('sd-student-name').textContent = student.name.split(' ')[0];
 
   // Default track based on the student's registered branch/stream
@@ -865,4 +1034,100 @@ function renderStudyTopics() {
 function setSidebarActive(el) {
   document.querySelectorAll('.sd-nav-item').forEach(item => item.classList.remove('active'));
   el.classList.add('active');
+}
+
+/* =========================================================
+   ADMIN DASHBOARD — real registration data, nothing fabricated
+   ========================================================= */
+async function adminLogin() {
+  const username = document.getElementById('admin-username').value.trim();
+  const password = document.getElementById('admin-password').value;
+  const errEl = document.getElementById('admin-login-err');
+  const btn = document.getElementById('admin-login-btn');
+
+  if (!username || !password) {
+    errEl.textContent = 'Enter both username and password.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Logging in...';
+  try {
+    const result = await adminApiCall('/admin/login', 'POST', { username, password });
+    setAdminToken(result.token);
+    errEl.style.display = 'none';
+    await loadAdminStats();
+    goTo('screen-admin-dashboard');
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Log In';
+  }
+}
+
+function adminLogout() {
+  setAdminToken(null);
+  goTo('screen-landing');
+}
+
+async function loadAdminStats() {
+  const body = document.getElementById('admin-dashboard-body');
+  body.innerHTML = '<div class="admin-loading">Loading real registration data...</div>';
+  try {
+    const stats = await adminApiCall('/admin/stats');
+    renderAdminStats(stats);
+  } catch (err) {
+    body.innerHTML = `<div class="admin-loading">Could not load stats: ${err.message}</div>`;
+  }
+}
+
+function renderAdminStats(stats) {
+  const body = document.getElementById('admin-dashboard-body');
+
+  const locRows = (list) => list.length === 0
+    ? '<div class="admin-empty-row">No data yet</div>'
+    : list.map(r => `
+        <div class="admin-loc-row">
+          <span>${r.location || '(not set)'}</span>
+          <span class="admin-loc-count">${r.count}</span>
+        </div>`).join('');
+
+  const recentRows = stats.recent.length === 0
+    ? '<div class="admin-empty-row">No registrations yet</div>'
+    : stats.recent.map(r => {
+        const type = r.farmer_name ? '🌾 Farmer' : r.student_name ? '🎓 Student' : '—';
+        const name = r.farmer_name || r.student_name || '—';
+        const loc = r.farmer_location || r.student_location || '—';
+        const date = new Date(r.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+        return `
+          <div class="admin-recent-row">
+            <div><b>${name}</b><div class="admin-recent-sub">${type} · ${loc}</div></div>
+            <div class="admin-recent-date">${date}</div>
+          </div>`;
+      }).join('');
+
+  body.innerHTML = `
+    <div class="admin-stat-row">
+      <div class="admin-stat-card"><div class="admin-stat-value">${stats.totalUsers}</div><div class="admin-stat-label">Total Accounts</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-value">${stats.totalFarmers}</div><div class="admin-stat-label">Farmer Profiles</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-value">${stats.totalStudents}</div><div class="admin-stat-label">Student Profiles</div></div>
+    </div>
+
+    <div class="admin-section-grid">
+      <div class="admin-panel">
+        <div class="admin-panel-title">🌾 Farmers by Location</div>
+        ${locRows(stats.farmersByLocation)}
+      </div>
+      <div class="admin-panel">
+        <div class="admin-panel-title">🎓 Students by Location</div>
+        ${locRows(stats.studentsByLocation)}
+      </div>
+    </div>
+
+    <div class="admin-panel" style="margin-top:16px;">
+      <div class="admin-panel-title">🕒 Recent Registrations</div>
+      ${recentRows}
+    </div>
+  `;
 }
