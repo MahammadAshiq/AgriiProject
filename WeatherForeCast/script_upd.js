@@ -136,16 +136,37 @@ function useMyLocation() {
       const { latitude, longitude } = pos.coords;
       try {
         statusEl.textContent = 'Finding your area name...';
-        // Free reverse geocoding, no API key, resolves villages/localities well
-        const revRes = await fetch(
-          `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
-        );
-        const revData = await revRes.json();
-        const label = [
-          revData.locality || revData.city || revData.principalSubdivision,
-          revData.principalSubdivision,
-          revData.countryName
-        ].filter(Boolean).join(', ');
+        let label = '';
+
+        // Stage 1: Nominatim OpenStreetMap (Most accurate for villages, hamlets, subdistricts)
+        try {
+          const osmRes = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`
+          );
+          if (osmRes.ok) {
+            const osmData = await osmRes.json();
+            const a = osmData.address || {};
+            const localPlace = a.village || a.hamlet || a.suburb || a.town || a.city || a.county || '';
+            const state = a.state || '';
+            const country = a.country || '';
+            label = [localPlace, state, country].filter(Boolean).join(', ');
+          }
+        } catch (osmErr) {
+          console.warn('OSM reverse geocode fallback:', osmErr);
+        }
+
+        // Stage 2: BigDataCloud Fallback
+        if (!label) {
+          const revRes = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+          );
+          const revData = await revRes.json();
+          label = [
+            revData.locality || revData.city || revData.principalSubdivision,
+            revData.principalSubdivision,
+            revData.countryName
+          ].filter(Boolean).join(', ');
+        }
 
         await loadWeatherByCoords(latitude, longitude, label || 'Your Location');
       } catch (err) {
@@ -165,23 +186,24 @@ function useMyLocation() {
 
 // --- Shared fetch + render pipeline ---
 async function loadWeatherByCoords(latitude, longitude, label) {
-  statusEl.textContent = 'Fetching weather...';
+  statusEl.textContent = 'Fetching weather data...';
   try {
     const wRes = await fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
-      `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day` +
-      `&hourly=temperature_2m,weather_code` +
-      `&daily=weather_code,temperature_2m_max,temperature_2m_min` +
+      `&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day,precipitation,surface_pressure,uv_index` +
+      `&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,weather_code` +
+      `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max` +
       `&timezone=auto&forecast_days=6`
     );
     if (!wRes.ok) throw new Error(`Weather API returned status ${wRes.status}`);
     const wData = await wRes.json();
-    if (!wData.current) throw new Error('Weather API response was missing current conditions data');
+    if (!wData.current) throw new Error('Weather API response missing current conditions');
 
     lastWeatherData = wData;
     lastLocationLabel = label;
 
     renderCurrent(wData, label);
+    renderAgriAdvice(wData);
     renderForecast(wData);
     renderHourlyChart(wData);
 
@@ -202,6 +224,9 @@ function renderCurrent(data, locationLabel) {
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-US', { weekday:'long', month:'short', day:'numeric' });
 
+  const uv = cur.uv_index !== undefined ? cur.uv_index.toFixed(1) : 'N/A';
+  const pressure = cur.surface_pressure ? Math.round(cur.surface_pressure) + ' hPa' : 'N/A';
+
   document.getElementById('currentCard').innerHTML = `
     <h2>${locationLabel}</h2>
     <div class="date">${dateStr}</div>
@@ -212,8 +237,76 @@ function renderCurrent(data, locationLabel) {
       <div class="meta-item">Feels Like <span>${displayTemp(cur.apparent_temperature)}</span></div>
       <div class="meta-item">Humidity <span>${cur.relative_humidity_2m}%</span></div>
       <div class="meta-item">Wind <span>${Math.round(cur.wind_speed_10m)} km/h</span></div>
+      <div class="meta-item">UV Index <span>${uv}</span></div>
+      <div class="meta-item">Pressure <span>${pressure}</span></div>
     </div>
   `;
+}
+
+function renderAgriAdvice(data) {
+  const cur = data.current;
+  const daily = data.daily || {};
+  const maxRainProb = (daily.precipitation_probability_max && daily.precipitation_probability_max[0]) || 0;
+  const windSpeed = cur.wind_speed_10m || 0;
+  const temp = cur.temperature_2m || 0;
+  const humidity = cur.relative_humidity_2m || 0;
+  const uv = cur.uv_index || 0;
+
+  // 1. Irrigation Advice
+  let irrTitle = 'Normal Irrigation';
+  let irrDesc = 'Standard watering schedule recommended today.';
+  let irrBadge = 'bg-green';
+  if (maxRainProb >= 60) {
+    irrTitle = '🌧️ Delay Irrigation';
+    irrDesc = `High chance of rain (${maxRainProb}%) expected today. Hold off on canal or sprinkler irrigation to save water & prevent soil waterlogging.`;
+    irrBadge = 'bg-blue';
+  } else if (temp > 32 && humidity < 40) {
+    irrTitle = '💧 Increase Watering';
+    irrDesc = 'Hot & dry conditions detected. Water crops early morning or evening to reduce evapotranspiration losses.';
+    irrBadge = 'bg-yellow';
+  }
+
+  // 2. Spraying & Pesticide Advice
+  let sprayTitle = 'Safe for Pesticide Spraying';
+  let sprayDesc = 'Ideal calm wind speed & clear conditions for foliar sprays.';
+  let sprayBadge = 'bg-green';
+  if (windSpeed > 18) {
+    sprayTitle = '💨 High Wind Warning';
+    sprayDesc = `Wind speed is ${Math.round(windSpeed)} km/h (>18 km/h). Avoid chemical or fertilizer spraying to prevent spray drift.`;
+    sprayBadge = 'bg-red';
+  } else if (maxRainProb >= 50) {
+    sprayTitle = '🌧️ Rain Threat for Spraying';
+    sprayDesc = 'Avoid pesticide spraying today — upcoming rain may wash off applied chemicals.';
+    sprayBadge = 'bg-yellow';
+  }
+
+  // 3. Worker Heat Safety
+  let workerTitle = 'Good Working Conditions';
+  let workerDesc = 'Comfortable weather for field work & harvesting.';
+  let workerBadge = 'bg-green';
+  if (temp > 35 || uv > 8) {
+    workerTitle = '☀️ High Heat & UV Hazard';
+    workerDesc = `High temperature (${Math.round(temp)}°C) & UV Index (${uv.toFixed(1)}). Field workers should stay hydrated and take shade breaks during noon hours.`;
+    workerBadge = 'bg-orange';
+  }
+
+  const container = document.getElementById('agriAdviceCard');
+  if (container) {
+    container.innerHTML = `
+      <div class="agri-item ${irrBadge}">
+        <div class="agri-head">${irrTitle}</div>
+        <div class="agri-body">${irrDesc}</div>
+      </div>
+      <div class="agri-item ${sprayBadge}">
+        <div class="agri-head">${sprayTitle}</div>
+        <div class="agri-body">${sprayDesc}</div>
+      </div>
+      <div class="agri-item ${workerBadge}">
+        <div class="agri-head">${workerTitle}</div>
+        <div class="agri-body">${workerDesc}</div>
+      </div>
+    `;
+  }
 }
 
 function renderForecast(data) {
@@ -221,18 +314,22 @@ function renderForecast(data) {
   const codes = data.daily.weather_code;
   const max = data.daily.temperature_2m_max;
   const min = data.daily.temperature_2m_min;
+  const rainProb = data.daily.precipitation_probability_max || [];
   const row = document.getElementById('forecastRow');
   row.innerHTML = '';
 
-  for (let i = 0; i < Math.min(5, days.length); i++) {
+  for (let i = 0; i < Math.min(6, days.length); i++) {
     const date = new Date(days[i]);
     const dname = i === 0 ? 'Today' : date.toLocaleDateString('en-US', { weekday:'short' });
     const w = getWeather(codes[i]);
+    const prob = rainProb[i] !== undefined ? `${rainProb[i]}% 🌧️` : '';
+
     row.innerHTML += `
       <div class="day-card">
         <div class="dname">${dname}</div>
         <div class="icon">${w.icon}</div>
         <div class="range">${displayTemp(max[i])} / ${displayTemp(min[i])}</div>
+        <div class="rain-prob">${prob}</div>
       </div>
     `;
   }

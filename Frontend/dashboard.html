@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard — AgriLearn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body class="dash-body">
+
+  <div class="dash-topbar">
+    <a href="dashboard.html" class="dash-topbar__brand">
+      <svg viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="16" r="15" stroke="#D9A441" stroke-width="1.4"/>
+        <path d="M16 23c0-6 3-10 7-12-1 6-3 10-7 12Z" fill="#D9A441"/>
+        <path d="M16 23c0-7-3.5-11-8-13 1 6.5 3.5 11 8 13Z" fill="#F4F1E6"/>
+      </svg>
+      AgriLearn
+    </a>
+    <div class="dash-topbar__right">
+      <span class="role-badge role-badge--farmer">🌾 Farmer</span>
+      <span class="dash-topbar__session" id="session-readout">Not signed in</span>
+      <button class="btn-ghost-inverse" id="logout-btn">Sign out</button>
+    </div>
+  </div>
+
+  <div class="dash-main">
+    <div class="dash-welcome">
+      <h1>Welcome back</h1>
+      <p>Ask the assistant about diseases, crops, soil, fertilizer or pests — or build a planted-field map.</p>
+    </div>
+
+    <!-- Category rail -->
+    <aside class="ai-rail">
+      <p class="ai-rail__title">Ask about</p>
+
+      <button type="button" class="ai-cat is-active" data-category="disease">
+        <span class="ai-cat__icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="3.5" stroke="currentColor" stroke-width="1.8"/></svg>
+        </span>
+        Disease &amp; pest ID
+      </button>
+
+      <button type="button" class="ai-cat" data-category="crop">
+        <span class="ai-cat__icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 13c0-4.5 2-7 6-8-1 4.5-2 7-6 8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 15c0-5-2.5-8-7-9 1 5 2.5 8 7 9Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        </span>
+        Crop recommendation
+      </button>
+
+      <button type="button" class="ai-cat" data-category="soil">
+        <span class="ai-cat__icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 13c2-2 4-2 6 0s4 2 6 0 4-2 6 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3 18c2-2 4-2 6 0s4 2 6 0 4-2 6 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3 8c2-2 4-2 6 0s4 2 6 0 4-2 6 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </span>
+        Soil type &amp; health
+      </button>
+
+      <button type="button" class="ai-cat" data-category="fertilizer">
+        <span class="ai-cat__icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 3h6v4l3 4v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-8l3-4V3Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 14h8" stroke="currentColor" stroke-width="1.8"/></svg>
+        </span>
+        Fertilizer guidance
+      </button>
+
+      <button type="button" class="ai-cat" data-category="pesticide">
+        <span class="ai-cat__icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="6" stroke="currentColor" stroke-width="1.8"/><path d="M12 7V3M9 4h6M6 9l-2-2M18 9l2-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </span>
+        Pest control
+      </button>
+
+      <div class="ai-rail__divider"></div>
+
+      <button type="button" class="ai-cat" data-category="map">
+        <span class="ai-cat__icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 3v15M15 6v15M3.5 5.5L9 3l6 3 5.5-2.5v15L15 21l-6-3-5.5 2.5V5.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        </span>
+        Crop plan map
+      </button>
+
+      <div class="ai-rail__divider"></div>
+      <button type="button" class="ai-rail__newchat" id="ai-new-chat">+ New chat</button>
+    </aside>
+
+    <!-- Chat panel -->
+    <section class="ai-panel">
+      <div class="ai-panel__head">
+        <span class="ai-panel__head-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3a5 5 0 0 0-5 5v1a5 5 0 0 0-2 4c0 2.5 1.8 4.4 4.2 4.9L9 20h6l-.2-2.1c2.4-.5 4.2-2.4 4.2-4.9a5 5 0 0 0-2-4V8a5 5 0 0 0-5-5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        </span>
+        <div>
+          <p class="ai-panel__head-title">AgriLearn Assistant</p>
+          <p class="ai-panel__head-sub">Diseases · crops · soil · fertilizer · pesticides</p>
+        </div>
+      </div>
+
+      <div class="ai-log" id="ai-log" aria-live="polite"></div>
+
+      <form class="ai-composer" id="ai-composer-form">
+        <textarea id="ai-input" placeholder="Ask something, e.g. 'my tomato leaves have brown spots'…" rows="1"></textarea>
+        <button type="submit" class="ai-send" aria-label="Send">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 20l16-8L4 4v6l10 2-10 2v6Z" fill="currentColor"/></svg>
+        </button>
+      </form>
+    </section>
+  </div>
+
+  <!-- Crop Plan Map modal -->
+  <div class="modal-overlay" id="map-overlay">
+    <div class="map-modal" role="dialog" aria-modal="true" aria-label="Crop plan map">
+      <div class="map-modal__head">
+        <div>
+          <h3>Crop plan map</h3>
+          <p>A quick proportioned layout for your field</p>
+        </div>
+        <button type="button" class="map-modal__close" id="map-close" aria-label="Close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <form class="map-form" id="map-form">
+        <div class="field">
+          <label>Soil type</label>
+          <div class="chip-select" data-field="soil">
+            <button type="button" class="ai-chip" data-value="loamy">Loamy</button>
+            <button type="button" class="ai-chip" data-value="clayey">Clayey</button>
+            <button type="button" class="ai-chip" data-value="sandy">Sandy</button>
+            <button type="button" class="ai-chip" data-value="black">Black</button>
+            <button type="button" class="ai-chip" data-value="red">Red</button>
+            <button type="button" class="ai-chip" data-value="alluvial">Alluvial</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Season</label>
+          <div class="chip-select" data-field="season">
+            <button type="button" class="ai-chip" data-value="kharif">Kharif (Jun–Oct)</button>
+            <button type="button" class="ai-chip" data-value="rabi">Rabi (Oct–Mar)</button>
+            <button type="button" class="ai-chip" data-value="zaid">Zaid (Mar–Jun)</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Water availability</label>
+          <div class="chip-select" data-field="water">
+            <button type="button" class="ai-chip" data-value="rain">Rain-fed only</button>
+            <button type="button" class="ai-chip" data-value="partial">Partial irrigation</button>
+            <button type="button" class="ai-chip" data-value="full">Full irrigation</button>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary">Generate plan</button>
+      </form>
+
+      <div class="map-result" id="map-result" hidden></div>
+    </div>
+  </div>
+
+  <script src="ai.js"></script>
+  <script>
+    // ── Farmer Auth Guard ──────────────────────────────────────────────────
+    // Decodes the stored role and redirects non-farmers away immediately.
+    (function() {
+      const role  = localStorage.getItem('agrilearn_role');
+      const token = localStorage.getItem('agrilearn_token');
+      const session = sessionStorage.getItem('agrilearn_demo_session');
+
+      // If logged in as student, bounce to student dashboard
+      if (role === 'student') {
+        window.location.href = 'student-dashboard.html';
+        return;
+      }
+
+      // If no session at all, bounce to login
+      if (!token && !session) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Populate topbar
+      const readout = document.getElementById('session-readout');
+      const email   = localStorage.getItem('agrilearn_email') || '';
+      if (session) {
+        try {
+          const s = JSON.parse(session);
+          readout.textContent = (s.email || email || 'Farmer') + ' · signed in ' + new Date(s.at).toLocaleTimeString();
+        } catch(e) {}
+      } else if (email) {
+        readout.textContent = email;
+      }
+
+      document.getElementById('logout-btn').addEventListener('click', function() {
+        sessionStorage.removeItem('agrilearn_demo_session');
+        localStorage.removeItem('agrilearn_token');
+        localStorage.removeItem('agrilearn_role');
+        localStorage.removeItem('agrilearn_email');
+        window.location.href = 'login.html';
+      });
+    })();
+  </script>
+</body>
+</html>

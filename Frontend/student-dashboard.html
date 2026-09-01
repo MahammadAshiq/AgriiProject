@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Student Portal — AgriLearn</title>
+<meta name="description" content="BSc Agriculture learning portal — structured notes, topics, and resources for agri students." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+<style>
+/* =====================================================================
+   Student Dashboard — GFG/W3Schools style for BSc Agriculture
+   ===================================================================== */
+
+/* Reset dash-body for student portal */
+.stud-body {
+  background: #f8f9fa;
+  min-height: 100vh;
+  font-family: var(--font-body);
+}
+
+/* ── Topbar ─────────────────────────────────────────────────────────── */
+.stud-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 clamp(12px, 2.5vw, 28px);
+  height: 56px;
+  background: var(--forest);
+  color: #F4F1E6;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+.stud-topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #F4F1E6;
+  flex-shrink: 0;
+}
+.stud-topbar__brand svg { width: 24px; height: 24px; }
+
+/* Search */
+.stud-search {
+  flex: 1;
+  max-width: 500px;
+  margin: 0 auto;
+  position: relative;
+}
+.stud-search input {
+  width: 100%;
+  padding: 8px 14px 8px 38px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255,255,255,0.12);
+  color: #F4F1E6;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  outline: none;
+  transition: background 0.15s;
+}
+.stud-search input::placeholder { color: rgba(244,241,230,0.5); }
+.stud-search input:focus { background: rgba(255,255,255,0.2); }
+.stud-search__icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(244,241,230,0.55);
+  pointer-events: none;
+}
+
+.stud-topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.stud-user {
+  font-size: 13px;
+  color: #C7D6C9;
+  display: none;
+}
+@media (min-width: 640px) { .stud-user { display: block; } }
+
+/* ── Layout ─────────────────────────────────────────────────────────── */
+.stud-layout {
+  display: flex;
+  min-height: calc(100vh - 56px);
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────── */
+.stud-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: #fff;
+  border-right: 1px solid #e0e4db;
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  padding: 16px 0 32px;
+}
+
+.stud-sidebar__section {
+  margin-bottom: 4px;
+}
+
+.stud-sidebar__heading {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 14px 18px 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+.stud-sidebar__heading:hover { color: var(--ink); }
+.stud-sidebar__arrow {
+  font-size: 11px;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+.stud-sidebar__section.is-collapsed .stud-sidebar__arrow { transform: rotate(-90deg); }
+.stud-sidebar__section.is-collapsed .stud-sidebar__list { display: none; }
+
+.stud-sidebar__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.stud-sidebar__item {
+  display: block;
+  padding: 8px 18px 8px 26px;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  line-height: 1.4;
+}
+.stud-sidebar__item:hover {
+  background: #f1f3ec;
+  border-left-color: var(--line);
+}
+.stud-sidebar__item.is-active {
+  background: var(--ok-bg);
+  border-left-color: var(--ok);
+  color: var(--ok);
+  font-weight: 600;
+}
+
+/* Mobile sidebar toggle */
+.stud-sidebar-toggle {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #F4F1E6;
+  padding: 6px;
+}
+@media (max-width: 860px) {
+  .stud-sidebar-toggle { display: flex; }
+  .stud-sidebar {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    z-index: 30;
+    transform: translateX(-100%);
+    transition: transform 0.25s var(--ease-out);
+    box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+  }
+  .stud-sidebar.is-open { transform: translateX(0); }
+}
+
+/* ── Main content ────────────────────────────────────────────────────── */
+.stud-main {
+  flex: 1;
+  min-width: 0;
+  padding: clamp(16px, 3vw, 36px) clamp(16px, 4vw, 48px);
+  max-width: 860px;
+}
+
+/* ── Home / browse view ──────────────────────────────────────────────── */
+.stud-home { }
+
+.stud-home__hero {
+  background: linear-gradient(135deg, var(--forest) 0%, #2C5A3E 100%);
+  border-radius: var(--radius-lg);
+  padding: 32px 36px;
+  color: #F4F1E6;
+  margin-bottom: 32px;
+  position: relative;
+  overflow: hidden;
+}
+.stud-home__hero::before {
+  content: "";
+  position: absolute;
+  right: -20px; top: -20px;
+  width: 180px; height: 180px;
+  background: rgba(217,164,65,0.12);
+  border-radius: 50%;
+}
+.stud-home__hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wheat);
+  margin: 0 0 8px;
+}
+.stud-home__hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  margin: 0 0 8px;
+  line-height: 1.15;
+}
+.stud-home__hero h1 em { font-style: italic; color: var(--wheat); }
+.stud-home__hero p {
+  font-size: 14px;
+  color: #D7E2D8;
+  margin: 0;
+  max-width: 44ch;
+}
+
+/* Progress bar */
+.stud-progress {
+  margin-bottom: 32px;
+}
+.stud-progress__label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+}
+.stud-progress__track {
+  height: 8px;
+  background: #e0e4db;
+  border-radius: 99px;
+  overflow: hidden;
+}
+.stud-progress__fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--ok), var(--wheat));
+  border-radius: 99px;
+  transition: width 0.6s var(--ease-out);
+  width: 0%;
+}
+
+/* Subject cards grid */
+.stud-subjects {
+  margin-bottom: 32px;
+}
+.stud-subjects h2 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--ink);
+  margin: 0 0 16px;
+}
+.stud-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+}
+.stud-subj-card {
+  background: #fff;
+  border: 1.5px solid #e0e4db;
+  border-radius: var(--radius-md);
+  padding: 18px 16px;
+  cursor: pointer;
+  transition: border-color 0.18s, box-shadow 0.18s, transform 0.14s;
+  position: relative;
+  overflow: hidden;
+}
+.stud-subj-card:hover {
+  border-color: var(--ok);
+  box-shadow: 0 6px 20px rgba(44,110,73,0.1);
+  transform: translateY(-2px);
+}
+.stud-subj-card__icon { font-size: 28px; margin-bottom: 10px; display: block; }
+.stud-subj-card__name {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+.stud-subj-card__count {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin: 0;
+  font-family: var(--font-mono);
+}
+.stud-subj-card__bar {
+  height: 3px;
+  background: #e0e4db;
+  border-radius: 3px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+.stud-subj-card__bar-fill {
+  height: 100%;
+  background: var(--ok);
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.5s var(--ease-out);
+}
+
+/* ── Article / topic view ─────────────────────────────────────────────── */
+.stud-article { display: none; }
+.stud-article.is-visible { display: block; }
+.stud-home.is-hidden { display: none; }
+
+.stud-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.stud-breadcrumb a {
+  color: var(--forest);
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+.stud-breadcrumb a:hover { color: var(--wheat-dark); }
+.stud-breadcrumb__sep { color: #c0c8b8; }
+
+.stud-article__header {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e0e4db;
+}
+.stud-article__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ok);
+  background: var(--ok-bg);
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-bottom: 10px;
+}
+.stud-article__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  color: var(--ink);
+  margin: 0 0 8px;
+  line-height: 1.2;
+}
+.stud-article__meta {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.stud-article__body {
+  color: var(--ink);
+  line-height: 1.75;
+  font-size: 15px;
+}
+.stud-article__body h2 {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  margin: 2em 0 0.6em;
+  color: var(--ink);
+  border-left: 4px solid var(--wheat);
+  padding-left: 12px;
+}
+.stud-article__body h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 1.5em 0 0.5em;
+  color: var(--forest);
+}
+.stud-article__body p { margin: 0 0 1em; }
+.stud-article__body ul, .stud-article__body ol {
+  margin: 0 0 1em;
+  padding-left: 22px;
+}
+.stud-article__body li { margin-bottom: 5px; }
+
+/* Key points box */
+.stud-keybox {
+  background: var(--ok-bg);
+  border: 1.5px solid #CFE6D5;
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  margin: 1.5em 0;
+}
+.stud-keybox__title {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ok);
+  margin: 0 0 10px;
+}
+.stud-keybox ul { margin: 0; padding-left: 18px; }
+.stud-keybox li { font-size: 13.5px; margin-bottom: 5px; }
+
+/* Did you know? box */
+.stud-didyouknow {
+  background: #FBF6E9;
+  border: 1.5px solid #F0D8A0;
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  margin: 1.5em 0;
+  display: flex;
+  gap: 12px;
+}
+.stud-didyouknow__icon { font-size: 22px; flex-shrink: 0; }
+.stud-didyouknow__text { font-size: 13.5px; line-height: 1.6; color: var(--ink); }
+
+/* Topic list sidebar within article */
+.stud-topic-list {
+  background: #fff;
+  border: 1.5px solid #e0e4db;
+  border-radius: var(--radius-md);
+  padding: 14px 0;
+  margin-bottom: 24px;
+}
+.stud-topic-list__head {
+  font-size: 12px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding: 0 16px 10px;
+  border-bottom: 1px solid #e0e4db;
+  margin-bottom: 8px;
+}
+.stud-topic-list a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background 0.12s;
+}
+.stud-topic-list a:hover { background: #f8f9fa; }
+.stud-topic-list a.is-current {
+  border-left-color: var(--ok);
+  color: var(--ok);
+  font-weight: 600;
+  background: var(--ok-bg);
+}
+.stud-topic-check { color: var(--ok); font-size: 12px; margin-left: auto; }
+
+/* Next / prev navigation */
+.stud-nav-btns {
+  display: flex;
+  gap: 12px;
+  margin-top: 36px;
+  padding-top: 24px;
+  border-top: 1px solid #e0e4db;
+}
+.stud-nav-btn {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid #e0e4db;
+  background: #fff;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: var(--ink);
+  font-weight: 600;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: left;
+}
+.stud-nav-btn:hover { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
+.stud-nav-btn--next { text-align: right; }
+.stud-nav-btn small { display: block; font-weight: 400; font-size: 11.5px; color: var(--ink-soft); margin-bottom: 2px; }
+
+/* Mark as read */
+.stud-mark-read {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--ok);
+  background: #fff;
+  color: var(--ok);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.stud-mark-read:hover { background: var(--ok-bg); }
+.stud-mark-read.is-done { background: var(--ok); color: #fff; }
+
+/* Role badge */
+.role-badge {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.role-badge--farmer { background: rgba(44,110,73,0.25); color: var(--wheat); }
+.role-badge--student { background: rgba(217,164,65,0.22); color: var(--wheat); }
+
+/* Role toggle on login */
+.role-toggle {
+  display: flex;
+  gap: 0;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-bottom: 22px;
+}
+.role-toggle__btn {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: background 0.15s, color 0.15s;
+}
+.role-toggle__btn + .role-toggle__btn { border-left: 1.5px solid var(--line); }
+.role-toggle__btn.is-active { background: var(--forest); color: #F4F1E6; }
+.role-toggle__btn:hover:not(.is-active) { background: var(--sage-bg); }
+</style>
+</head>
+<body class="stud-body">
+
+<!-- ── Topbar ─────────────────────────────────────────────────────────── -->
+<header class="stud-topbar">
+  <button class="stud-sidebar-toggle" id="sidebar-toggle" aria-label="Toggle menu">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  </button>
+  <a href="student-dashboard.html" class="stud-topbar__brand">
+    <svg viewBox="0 0 32 32" fill="none">
+      <circle cx="16" cy="16" r="15" stroke="#D9A441" stroke-width="1.4"/>
+      <path d="M16 23c0-6 3-10 7-12-1 6-3 10-7 12Z" fill="#D9A441"/>
+      <path d="M16 23c0-7-3.5-11-8-13 1 6.5 3.5 11 8 13Z" fill="#F4F1E6"/>
+    </svg>
+    AgriLearn
+  </a>
+
+  <div class="stud-search">
+    <span class="stud-search__icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </span>
+    <input type="search" id="topic-search" placeholder="Search topics, subjects…" autocomplete="off" />
+  </div>
+
+  <div class="stud-topbar__right">
+    <span class="role-badge role-badge--student">📚 Student</span>
+    <span class="stud-user" id="stud-user-label">Student</span>
+    <button class="btn-ghost-inverse" id="stud-logout">Sign out</button>
+  </div>
+</header>
+
+<!-- ── Layout ─────────────────────────────────────────────────────────── -->
+<div class="stud-layout">
+
+  <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+  <nav class="stud-sidebar" id="stud-sidebar" aria-label="Subject navigation">
+
+    <div class="stud-sidebar__section" id="sb-agronomy">
+      <div class="stud-sidebar__heading" data-section="sb-agronomy">🌱 Agronomy <span class="stud-sidebar__arrow">▾</span></div>
+      <ul class="stud-sidebar__list">
+        <li class="stud-sidebar__item" data-topic="agronomy-intro">Introduction to Agronomy</li>
+        <li class="stud-sidebar__item" data-topic="crop-production">Crop Production Principles</li>
+        <li class="stud-sidebar__item" data-topic="tillage">Tillage & Soil Preparation</li>
+        <li class="stud-sidebar__item" data-topic="irrigation">Irrigation Methods</li>
+        <li class="stud-sidebar__item" data-topic="seed-rate">Seed Rate & Sowing Methods</li>
+        <li class="stud-sidebar__item" data-topic="cropping-systems">Cropping Systems</li>
+      </ul>
+    </div>
+
+    <div class="stud-sidebar__section" id="sb-soil">
+      <div class="stud-sidebar__heading" data-section="sb-soil">🪨 Soil Science <span class="stud-sidebar__arrow">▾</span></div>
+      <ul class="stud-sidebar__list">
+        <li class="stud-sidebar__item" data-topic="soil-formation">Soil Formation & Profile</li>
+        <li class="stud-sidebar__item" data-topic="soil-ph">Soil pH & Reaction</li>
+        <li class="stud-sidebar__item" data-topic="soil-fertility">Soil Fertility & Nutrients</li>
+        <li class="stud-sidebar__item" data-topic="organic-matter">Organic Matter & Humus</li>
+        <li class="stud-sidebar__item" data-topic="soil-texture">Soil Texture & Structure</li>
+      </ul>
+    </div>
+
+    <div class="stud-sidebar__section" id="sb-pathology">
+      <div class="stud-sidebar__heading" data-section="sb-pathology">🦠 Plant Pathology <span class="stud-sidebar__arrow">▾</span></div>
+      <ul class="stud-sidebar__list">
+        <li class="stud-sidebar__item" data-topic="disease-intro">Introduction to Plant Diseases</li>
+        <li class="stud-sidebar__item" data-topic="fungal-diseases">Fungal Diseases</li>
+        <li class="stud-sidebar__item" data-topic="bacterial-diseases">Bacterial Diseases</li>
+        <li class="stud-sidebar__item" data-topic="ipm">Integrated Pest Management</li>
+        <li class="stud-sidebar__item" data-topic="biocontrol">Biological Control</li>
+      </ul>
+    </div>
+
+    <div class="stud-sidebar__section" id="sb-horticulture">
+      <div class="stud-sidebar__heading" data-section="sb-horticulture">🍊 Horticulture <span class="stud-sidebar__arrow">▾</span></div>
+      <ul class="stud-sidebar__list">
+        <li class="stud-sidebar__item" data-topic="hort-intro">Introduction to Horticulture</li>
+        <li class="stud-sidebar__item" data-topic="fruit-crops">Fruit Crop Production</li>
+        <li class="stud-sidebar__item" data-topic="vegetable-crops">Vegetable Cultivation</li>
+        <li class="stud-sidebar__item" data-topic="post-harvest">Post-Harvest Management</li>
+      </ul>
+    </div>
+
+    <div class="stud-sidebar__section" id="sb-genetics">
+      <div class="stud-sidebar__heading" data-section="sb-genetics">🧬 Genetics & Breeding <span class="stud-sidebar__arrow">▾</span></div>
+      <ul class="stud-sidebar__list">
+        <li class="stud-sidebar__item" data-topic="mendelism">Mendelism & Heredity</li>
+        <li class="stud-sidebar__item" data-topic="hybridization">Hybridization Techniques</li>
+        <li class="stud-sidebar__item" data-topic="mutation">Mutation Breeding</li>
+        <li class="stud-sidebar__item" data-topic="gmo">GMO & Biotechnology</li>
+      </ul>
+    </div>
+
+    <div class="stud-sidebar__section" id="sb-economics">
+      <div class="stud-sidebar__heading" data-section="sb-economics">💰 Agricultural Economics <span class="stud-sidebar__arrow">▾</span></div>
+      <ul class="stud-sidebar__list">
+        <li class="stud-sidebar__item" data-topic="farm-management">Farm Management</li>
+        <li class="stud-sidebar__item" data-topic="market-linkage">Market Linkage & MSP</li>
+        <li class="stud-sidebar__item" data-topic="cooperatives">Agricultural Cooperatives</li>
+        <li class="stud-sidebar__item" data-topic="agri-credit">Agricultural Credit</li>
+      </ul>
+    </div>
+
+    <div class="stud-sidebar__section" id="sb-entomology">
+      <div class="stud-sidebar__heading" data-section="sb-entomology">🐛 Entomology <span class="stud-sidebar__arrow">▾</span></div>
+      <ul class="stud-sidebar__list">
+        <li class="stud-sidebar__item" data-topic="insect-pests">Major Insect Pests</li>
+        <li class="stud-sidebar__item" data-topic="life-cycles">Insect Life Cycles</li>
+        <li class="stud-sidebar__item" data-topic="pesticide-groups">Pesticide Classification</li>
+      </ul>
+    </div>
+
+  </nav>
+
+  <!-- ── Main ──────────────────────────────────────────────────────────── -->
+  <main class="stud-main">
+
+    <!-- Home / Browse view -->
+    <div class="stud-home" id="stud-home">
+      <div class="stud-home__hero">
+        <p class="stud-home__hero-eyebrow">BSc Agriculture Learning Portal</p>
+        <h1>Learn Agriculture,<br/><em>topic by topic.</em></h1>
+        <p>Structured notes and resources for every subject in your BSc Agriculture curriculum — organised like a reference guide, not a textbook.</p>
+      </div>
+
+      <div class="stud-progress" id="stud-progress-section">
+        <div class="stud-progress__label">
+          <span>Your progress</span>
+          <span id="progress-pct">0 topics read</span>
+        </div>
+        <div class="stud-progress__track">
+          <div class="stud-progress__fill" id="progress-fill"></div>
+        </div>
+      </div>
+
+      <div class="stud-subjects">
+        <h2>All Subjects</h2>
+        <div class="stud-grid" id="stud-grid">
+          <div class="stud-subj-card" data-subject="agronomy"><span class="stud-subj-card__icon">🌱</span><p class="stud-subj-card__name">Agronomy</p><p class="stud-subj-card__count">6 topics</p><div class="stud-subj-card__bar"><div class="stud-subj-card__bar-fill" id="bar-agronomy"></div></div></div>
+          <div class="stud-subj-card" data-subject="soil"><span class="stud-subj-card__icon">🪨</span><p class="stud-subj-card__name">Soil Science</p><p class="stud-subj-card__count">5 topics</p><div class="stud-subj-card__bar"><div class="stud-subj-card__bar-fill" id="bar-soil"></div></div></div>
+          <div class="stud-subj-card" data-subject="pathology"><span class="stud-subj-card__icon">🦠</span><p class="stud-subj-card__name">Plant Pathology</p><p class="stud-subj-card__count">5 topics</p><div class="stud-subj-card__bar"><div class="stud-subj-card__bar-fill" id="bar-pathology"></div></div></div>
+          <div class="stud-subj-card" data-subject="horticulture"><span class="stud-subj-card__icon">🍊</span><p class="stud-subj-card__name">Horticulture</p><p class="stud-subj-card__count">4 topics</p><div class="stud-subj-card__bar"><div class="stud-subj-card__bar-fill" id="bar-horticulture"></div></div></div>
+          <div class="stud-subj-card" data-subject="genetics"><span class="stud-subj-card__icon">🧬</span><p class="stud-subj-card__name">Genetics & Breeding</p><p class="stud-subj-card__count">4 topics</p><div class="stud-subj-card__bar"><div class="stud-subj-card__bar-fill" id="bar-genetics"></div></div></div>
+          <div class="stud-subj-card" data-subject="economics"><span class="stud-subj-card__icon">💰</span><p class="stud-subj-card__name">Agri Economics</p><p class="stud-subj-card__count">4 topics</p><div class="stud-subj-card__bar"><div class="stud-subj-card__bar-fill" id="bar-economics"></div></div></div>
+          <div class="stud-subj-card" data-subject="entomology"><span class="stud-subj-card__icon">🐛</span><p class="stud-subj-card__name">Entomology</p><p class="stud-subj-card__count">3 topics</p><div class="stud-subj-card__bar"><div class="stud-subj-card__bar-fill" id="bar-entomology"></div></div></div>
+        </div>
+      </div>
+    </div><!-- /stud-home -->
+
+    <!-- Article view (shown when a topic is selected) -->
+    <div class="stud-article" id="stud-article">
+      <nav class="stud-breadcrumb" id="stud-breadcrumb">
+        <a id="bc-home">Home</a>
+        <span class="stud-breadcrumb__sep">›</span>
+        <span id="bc-subject"></span>
+        <span class="stud-breadcrumb__sep">›</span>
+        <span id="bc-topic"></span>
+      </nav>
+
+      <div class="stud-topic-list" id="stud-topic-list"></div>
+
+      <article>
+        <header class="stud-article__header">
+          <span class="stud-article__tag" id="art-tag">Agronomy</span>
+          <h1 class="stud-article__title" id="art-title">Topic Title</h1>
+          <div class="stud-article__meta">
+            <span id="art-read-time">📖 5 min read</span>
+            <span id="art-level">🎓 BSc Agriculture</span>
+          </div>
+        </header>
+
+        <div class="stud-article__body" id="art-body"></div>
+
+        <button class="stud-mark-read" id="mark-read-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Mark as read
+        </button>
+
+        <div class="stud-nav-btns">
+          <button class="stud-nav-btn" id="prev-btn" hidden>
+            <small>← Previous</small>
+            <span id="prev-label"></span>
+          </button>
+          <button class="stud-nav-btn stud-nav-btn--next" id="next-btn" hidden>
+            <small>Next →</small>
+            <span id="next-label"></span>
+          </button>
+        </div>
+      </article>
+    </div><!-- /stud-article -->
+
+  </main>
+
+</div><!-- /stud-layout -->
+
+<script>
+(function () {
+  'use strict';
+
+  /* ── Auth Guard ───────────────────────────────────────────────────── */
+  const role    = localStorage.getItem('agrilearn_role');
+  const token   = localStorage.getItem('agrilearn_token');
+  const session = sessionStorage.getItem('agrilearn_demo_session');
+
+  if (role === 'farmer') { window.location.href = 'dashboard.html'; return; }
+  if (!token && !session) { window.location.href = 'login.html'; return; }
+
+  // Populate user label
+  const email = localStorage.getItem('agrilearn_email') || '';
+  if (email) document.getElementById('stud-user-label').textContent = email;
+
+  document.getElementById('stud-logout').addEventListener('click', function () {
+    sessionStorage.removeItem('agrilearn_demo_session');
+    localStorage.removeItem('agrilearn_token');
+    localStorage.removeItem('agrilearn_role');
+    localStorage.removeItem('agrilearn_email');
+    window.location.href = 'login.html';
+  });
+
+  /* ── Content database ─────────────────────────────────────────────── */
+  const TOPICS = {
+    'agronomy-intro': {
+      subject: 'Agronomy', subjectId: 'agronomy', icon: '🌱',
+      title: 'Introduction to Agronomy',
+      readTime: '6 min read',
+      body: `
+        <p>Agronomy is the science of soil management and crop production. It integrates knowledge from plant biology, soil science, ecology, and genetics to optimise agricultural systems for food production.</p>
+        <div class="stud-keybox"><p class="stud-keybox__title">🔑 Key Points</p><ul>
+          <li>Agronomy = soil + crop management + environment</li>
+          <li>Aims to maximise yield with minimal environmental impact</li>
+          <li>Covers Kharif, Rabi, and Zaid crop seasons in India</li>
+          <li>Father of Agronomy: Pietro de'Crescenzi (14th century)</li>
+        </ul></div>
+        <h2>Branches of Agronomy</h2>
+        <p>Agronomy is broadly divided into:</p>
+        <ul>
+          <li><strong>Crop Physiology</strong> — Understanding plant growth processes</li>
+          <li><strong>Soil Science</strong> — Soil properties and management</li>
+          <li><strong>Crop Ecology</strong> — Interaction of crops with environment</li>
+          <li><strong>Crop Improvement</strong> — Developing better crop varieties</li>
+        </ul>
+        <h2>Importance in Indian Agriculture</h2>
+        <p>India is an agrarian economy with more than 58% of rural households depending on agriculture. Agronomy helps in addressing key challenges such as food security, sustainable production, and climate adaptation.</p>
+        <div class="stud-didyouknow"><span class="stud-didyouknow__icon">💡</span><p class="stud-didyouknow__text"><strong>Did you know?</strong> India has the largest net cropped area in the world — approximately 140 million hectares — second only in gross cropped area to China.</p></div>
+        <h2>Cropping Seasons in India</h2>
+        <h3>Kharif (Monsoon crops — June to October)</h3>
+        <p>Major crops: Rice, Maize, Sorghum, Pearl Millet, Cotton, Groundnut, Soybean.</p>
+        <h3>Rabi (Winter crops — October to March)</h3>
+        <p>Major crops: Wheat, Barley, Mustard, Chickpea, Lentil, Linseed.</p>
+        <h3>Zaid (Summer crops — March to June)</h3>
+        <p>Major crops: Cucumber, Watermelon, Muskmelon, Moong, Urd Bean.</p>
+      `
+    },
+    'crop-production': {
+      subject: 'Agronomy', subjectId: 'agronomy', icon: '🌱',
+      title: 'Crop Production Principles',
+      readTime: '8 min read',
+      body: `
+        <p>Crop production involves a series of planned, systematic operations aimed at maximising crop yield in a sustainable and economically viable manner. Understanding the principles allows farmers and agronomists to make better decisions at every stage of crop growth.</p>
+        <div class="stud-keybox"><p class="stud-keybox__title">🔑 Key Points</p><ul>
+          <li>Yield = Genetic potential × Environment × Management</li>
+          <li>Five growth stages: germination, seedling, vegetative, reproductive, maturation</li>
+          <li>LAI (Leaf Area Index) is a critical yield predictor</li>
+          <li>Nutrient management follows the 4R principle: Right Source, Right Rate, Right Time, Right Place</li>
+        </ul></div>
+        <h2>Factors Affecting Crop Production</h2>
+        <h3>1. Climatic Factors</h3>
+        <ul><li>Temperature — influences germination and enzyme activity</li><li>Rainfall and humidity</li><li>Sunlight (photoperiodism)</li><li>Wind speed and direction</li></ul>
+        <h3>2. Edaphic Factors (Soil)</h3>
+        <ul><li>Soil texture and structure</li><li>Soil pH (ideal 6–7 for most crops)</li><li>Soil organic matter and nutrient content</li><li>Drainage and aeration</li></ul>
+        <h3>3. Biological Factors</h3>
+        <ul><li>Weed competition</li><li>Pest and disease pressure</li><li>Beneficial soil microorganisms</li></ul>
+        <h2>Crop Growth Stages</h2>
+        <p>Understanding crop phenology is essential for timing inputs correctly:</p>
+        <ol><li><strong>Germination</strong> — seed absorbs water, radicle emerges</li><li><strong>Seedling stage</strong> — first true leaves appear, heterotrophic → autotrophic</li><li><strong>Vegetative stage</strong> — rapid leaf and stem growth, high N demand</li><li><strong>Reproductive stage</strong> — flowering, pollination, grain/fruit formation</li><li><strong>Maturation</strong> — grain filling, moisture loss, harvest readiness</li></ol>
+        <div class="stud-didyouknow"><span class="stud-didyouknow__icon">💡</span><p class="stud-didyouknow__text"><strong>Did you know?</strong> The Green Revolution (1960s) in India, led by Dr. M.S. Swaminathan with Norman Borlaug's HYV wheat, increased wheat production from 12 MT (1964) to 17 MT (1968) in just four years.</p></div>
+      `
+    },
+    'soil-formation': {
+      subject: 'Soil Science', subjectId: 'soil', icon: '🪨',
+      title: 'Soil Formation & Profile',
+      readTime: '7 min read',
+      body: `
+        <p>Soil is a complex mixture of minerals, organic matter, water, and air that forms the foundation for terrestrial plant life. Understanding how soil forms and its profile structure is essential for managing soil health.</p>
+        <div class="stud-keybox"><p class="stud-keybox__title">🔑 Key Points</p><ul>
+          <li>Soil formation (pedogenesis) takes thousands of years</li>
+          <li>5 soil-forming factors: Parent material, Climate, Organisms, Relief, Time (CLORPT)</li>
+          <li>A soil profile has distinct layers called horizons: O, A, B, C, R</li>
+          <li>Regolith = weathered parent material; humus = decomposed organic matter</li>
+        </ul></div>
+        <h2>Soil-Forming Factors (CLORPT)</h2>
+        <h3>1. Climate</h3>
+        <p>Temperature and precipitation are the most dominant factors. Warm, humid conditions accelerate weathering and leaching, producing deep, highly weathered soils (e.g., laterites).</p>
+        <h3>2. Living Organisms</h3>
+        <p>Plants, animals, bacteria, and fungi all contribute organic matter and influence soil structure. Earthworms mix horizons and improve aeration.</p>
+        <h3>3. Relief (Topography)</h3>
+        <p>Slope affects water drainage and erosion. Valley soils receive transported material (colluvium), while hilltop soils are often thin and shallow.</p>
+        <h3>4. Parent Material</h3>
+        <p>The mineral composition of bedrock influences soil texture, pH, and nutrient status. Basalt-derived soils are black and fertile; granite soils are sandy and less fertile.</p>
+        <h3>5. Time</h3>
+        <p>Soil development is a very slow process. Young soils have weakly developed profiles; old soils have well-differentiated horizons.</p>
+        <h2>Soil Profile Horizons</h2>
+        <ul>
+          <li><strong>O horizon</strong> — Organic layer (leaf litter, compost)</li>
+          <li><strong>A horizon</strong> — Topsoil; rich in humus and biological activity (most important for crops)</li>
+          <li><strong>B horizon</strong> — Subsoil; accumulation of clay and minerals leached from A</li>
+          <li><strong>C horizon</strong> — Partially weathered parent material</li>
+          <li><strong>R horizon</strong> — Bedrock</li>
+        </ul>
+        <div class="stud-didyouknow"><span class="stud-didyouknow__icon">💡</span><p class="stud-didyouknow__text"><strong>Did you know?</strong> It takes approximately 500–1,000 years to form just 1 inch (2.5 cm) of topsoil naturally. That's why soil conservation is so critical!</p></div>
+      `
+    },
+    'fungal-diseases': {
+      subject: 'Plant Pathology', subjectId: 'pathology', icon: '🦠',
+      title: 'Fungal Diseases of Crops',
+      readTime: '9 min read',
+      body: `
+        <p>Fungi are responsible for approximately 70–80% of all plant diseases. They reproduce through spores and spread via wind, water, insects, and soil. Fungal diseases cause severe economic losses in crops worldwide.</p>
+        <div class="stud-keybox"><p class="stud-keybox__title">🔑 Key Points</p><ul>
+          <li>Major fungal diseases: Blast, Rust, Smut, Blight, Wilt, Powdery mildew</li>
+          <li>Koch's postulates must be satisfied to confirm a pathogen</li>
+          <li>Disease triangle: Host + Pathogen + Environment</li>
+          <li>Control: Cultural, chemical (fungicides), biological methods</li>
+        </ul></div>
+        <h2>Important Fungal Diseases</h2>
+        <h3>1. Rice Blast (Magnaporthe oryzae)</h3>
+        <p>Most destructive disease of rice. Symptoms: diamond-shaped lesions with grey centres and brown borders on leaves. Can attack neck (neck rot) causing yield loss of 50–90%.</p>
+        <p><strong>Control:</strong> Resistant varieties, Tricyclazole (fungicide), balanced N application.</p>
+        <h3>2. Wheat Rust (Puccinia spp.)</h3>
+        <p>Three types: Stem rust (P. graminis), Yellow/Stripe rust (P. striiformis), Leaf rust (P. triticina). Orange-yellow pustules appear on leaves and stems.</p>
+        <p><strong>Control:</strong> Resistant varieties (Sharbati Sonora), Propiconazole spray.</p>
+        <h3>3. Late Blight of Potato (Phytophthora infestans)</h3>
+        <p>The oomycete pathogen that caused the Great Irish Famine (1845). Water-soaked lesions on leaves that turn brown. Spreads rapidly in cool, wet weather.</p>
+        <h3>4. Powdery Mildew (Erysiphe spp.)</h3>
+        <p>White powdery patches on leaf surfaces. Favoured by moderate temperature and low humidity (unlike most other fungal diseases). Affects wheat, grapes, cucurbits.</p>
+        <h2>Disease Management</h2>
+        <ul>
+          <li><strong>Cultural control:</strong> Crop rotation, resistant varieties, field sanitation</li>
+          <li><strong>Chemical control:</strong> Fungicides — Mancozeb, Carbendazim, Propiconazole</li>
+          <li><strong>Biological control:</strong> Trichoderma viride, Bacillus subtilis</li>
+        </ul>
+        <div class="stud-didyouknow"><span class="stud-didyouknow__icon">💡</span><p class="stud-didyouknow__text"><strong>Did you know?</strong> The Great Irish Famine caused by Late Blight (Phytophthora infestans) led to the death of over 1 million people and emigration of another million, reducing Ireland's population by 25%.</p></div>
+      `
+    },
+    'mendelism': {
+      subject: 'Genetics & Breeding', subjectId: 'genetics', icon: '🧬',
+      title: 'Mendelism & Heredity',
+      readTime: '8 min read',
+      body: `
+        <p>Gregor Johann Mendel (1822–1884), an Augustinian friar, laid the foundation for modern genetics through his experiments with garden peas (Pisum sativum) between 1856–1863.</p>
+        <div class="stud-keybox"><p class="stud-keybox__title">🔑 Key Points</p><ul>
+          <li>Mendel's two laws: Law of Segregation & Law of Independent Assortment</li>
+          <li>Monohybrid cross ratio: 3:1 (phenotypic) | 1:2:1 (genotypic)</li>
+          <li>Dihybrid cross ratio: 9:3:3:1</li>
+          <li>Mendel worked with 7 contrasting characters in pea</li>
+        </ul></div>
+        <h2>Mendel's Experimental Material</h2>
+        <p>Mendel chose garden peas (Pisum sativum) because they have: clearly contrasting characters, short life span, easy cross-pollination, and large number of offspring.</p>
+        <h3>7 Characters Studied</h3>
+        <ol>
+          <li>Seed shape — Round vs Wrinkled</li>
+          <li>Seed colour — Yellow vs Green</li>
+          <li>Pod shape — Inflated vs Constricted</li>
+          <li>Pod colour — Green vs Yellow</li>
+          <li>Flower colour — Purple vs White</li>
+          <li>Flower position — Axial vs Terminal</li>
+          <li>Plant height — Tall vs Dwarf</li>
+        </ol>
+        <h2>Law of Segregation (First Law)</h2>
+        <p>Each individual possesses two alleles for each trait. During gamete formation, these alleles separate (segregate) so that each gamete carries only one allele. The two alleles come together again at fertilisation.</p>
+        <p><em>Example:</em> Tt × Tt → TT : Tt : tt = 1:2:1 (genotypic) → Tall:Dwarf = 3:1 (phenotypic)</p>
+        <h2>Law of Independent Assortment (Second Law)</h2>
+        <p>Alleles of different genes assort independently of each other during gamete formation. This holds true for genes located on different chromosomes.</p>
+        <p><em>Example:</em> RrYy × RrYy → 9 Round Yellow : 3 Round Green : 3 Wrinkled Yellow : 1 Wrinkled Green</p>
+        <div class="stud-didyouknow"><span class="stud-didyouknow__icon">💡</span><p class="stud-didyouknow__text"><strong>Did you know?</strong> Mendel's work was published in 1866 but was ignored for 35 years. It was rediscovered in 1900 independently by Hugo de Vries, Carl Correns, and Erich von Tschermak — all of whom also confirmed his results.</p></div>
+      `
+    },
+    'farm-management': {
+      subject: 'Agricultural Economics', subjectId: 'economics', icon: '💰',
+      title: 'Farm Management',
+      readTime: '7 min read',
+      body: `
+        <p>Farm management is the process of making and implementing decisions to organise and operate a farm for maximum continuous profit. It applies economic and business principles to farming operations.</p>
+        <div class="stud-keybox"><p class="stud-keybox__title">🔑 Key Points</p><ul>
+          <li>Farm management = Decision-making science for farm operations</li>
+          <li>Four factors of production: Land, Labour, Capital, Management</li>
+          <li>Types of farm costs: Fixed costs & Variable costs</li>
+          <li>Break-even analysis determines minimum production for profit</li>
+        </ul></div>
+        <h2>Principles of Farm Management</h2>
+        <h3>1. Principle of Variable Proportions (Law of Diminishing Returns)</h3>
+        <p>As successive units of a variable input are added to a fixed input, after a point the marginal product decreases. Applies to fertiliser application — beyond optimal dose, yield increment falls.</p>
+        <h3>2. Principle of Factor Substitution</h3>
+        <p>One input may be substituted for another to maintain the same level of output. Example: machinery can substitute for labour.</p>
+        <h3>3. Principle of Comparative Advantage</h3>
+        <p>A region or farm should specialise in producing crops for which it has the greatest comparative advantage (least opportunity cost).</p>
+        <h2>Farm Costs</h2>
+        <ul>
+          <li><strong>Fixed Costs (FC):</strong> Depreciation, land revenue, interest on fixed capital — do not change with output level</li>
+          <li><strong>Variable Costs (VC):</strong> Seeds, fertiliser, labour, irrigation — change with output level</li>
+          <li><strong>Total Cost (TC) = FC + VC</strong></li>
+        </ul>
+        <h2>Types of Farming</h2>
+        <ul>
+          <li><strong>Subsistence farming</strong> — Production mainly for self-consumption</li>
+          <li><strong>Commercial farming</strong> — Production for sale in the market</li>
+          <li><strong>Mixed farming</strong> — Crop production + livestock rearing together</li>
+          <li><strong>Intensive farming</strong> — High input, high yield per unit area</li>
+        </ul>
+        <div class="stud-didyouknow"><span class="stud-didyouknow__icon">💡</span><p class="stud-didyouknow__text"><strong>Did you know?</strong> India has 138 million farm holdings. Of these, about 86% are small and marginal (less than 2 hectares), yet they produce a large share of India's food output.</p></div>
+      `
+    },
+    'ipm': {
+      subject: 'Plant Pathology', subjectId: 'pathology', icon: '🦠',
+      title: 'Integrated Pest Management',
+      readTime: '8 min read',
+      body: `
+        <p>Integrated Pest Management (IPM) is an ecosystem-based strategy that focuses on long-term prevention of pests and their damage through a combination of techniques such as biological control, habitat manipulation, cultural practices, and use of resistant varieties.</p>
+        <div class="stud-keybox"><p class="stud-keybox__title">🔑 Key Points</p><ul>
+          <li>IPM was introduced by FAO in the 1960s to reduce pesticide dependence</li>
+          <li>Four pillars: Cultural, Biological, Chemical, Regulatory control</li>
+          <li>Economic Threshold Level (ETL) guides spray decisions</li>
+          <li>Goal: Reduce pest populations below Economic Injury Level (EIL)</li>
+        </ul></div>
+        <h2>Components of IPM</h2>
+        <h3>1. Cultural Control</h3>
+        <p>Manipulation of the crop environment to reduce pest incidence:</p>
+        <ul><li>Crop rotation — breaks pest cycles</li><li>Resistant varieties</li><li>Sanitation — destroy crop residues</li><li>Proper spacing and timing of sowing</li></ul>
+        <h3>2. Biological Control</h3>
+        <p>Using natural enemies to suppress pest populations:</p>
+        <ul><li><strong>Predators:</strong> Ladybird beetles, spiders, lacewings</li><li><strong>Parasitoids:</strong> Trichogramma wasps for egg parasitism</li><li><strong>Pathogens:</strong> Bacillus thuringiensis (Bt), NPV (Nuclear Polyhedrosis Virus)</li></ul>
+        <h3>3. Chemical Control</h3>
+        <p>Used only when pest population exceeds Economic Threshold Level (ETL). Choose selective, low-residue pesticides. Follow label instructions and safety precautions.</p>
+        <h3>4. Regulatory Control</h3>
+        <p>Quarantine measures to prevent entry of exotic pests. Plant Protection Act, 1914 governs this in India.</p>
+        <h2>Key Terms</h2>
+        <ul>
+          <li><strong>Economic Injury Level (EIL):</strong> Lowest pest density causing economic damage</li>
+          <li><strong>Economic Threshold Level (ETL):</strong> Pest density at which management action should begin (= 75% of EIL)</li>
+          <li><strong>General Equilibrium Position (GEP):</strong> Average pest population in the absence of disturbing influences</li>
+        </ul>
+        <div class="stud-didyouknow"><span class="stud-didyouknow__icon">💡</span><p class="stud-didyouknow__text"><strong>Did you know?</strong> Rachel Carson's 1962 book "Silent Spring" exposed the devastating effects of DDT on wildlife and triggered the modern environmental movement, ultimately leading to IPM adoption worldwide.</p></div>
+      `
+    },
+    'hort-intro': {
+      subject: 'Horticulture', subjectId: 'horticulture', icon: '🍊',
+      title: 'Introduction to Horticulture',
+      readTime: '6 min read',
+      body: `
+        <p>Horticulture (Latin: hortus = garden + cultura = cultivation) is the branch of agriculture that deals with cultivation of fruits, vegetables, flowers, ornamental plants, and plantation crops.</p>
+        <div class="stud-keybox"><p class="stud-keybox__title">🔑 Key Points</p><ul>
+          <li>Horticulture = garden cultivation science</li>
+          <li>Branches: Pomology, Olericulture, Floriculture, Landscaping, Arboriculture</li>
+          <li>India is 2nd largest producer of fruits & vegetables in the world</li>
+          <li>NHB (National Horticulture Board) promotes horticulture development in India</li>
+        </ul></div>
+        <h2>Branches of Horticulture</h2>
+        <ul>
+          <li><strong>Pomology</strong> — Science of fruit production (mango, banana, citrus, grapes)</li>
+          <li><strong>Olericulture</strong> — Science of vegetable production (tomato, potato, onion)</li>
+          <li><strong>Floriculture</strong> — Science of flower production (rose, marigold, chrysanthemum)</li>
+          <li><strong>Landscape Gardening</strong> — Designing aesthetic outdoor spaces</li>
+          <li><strong>Plantation Crops</strong> — Tea, coffee, rubber, coconut, spices</li>
+          <li><strong>Post-Harvest Technology</strong> — Storage, processing, value addition</li>
+        </ul>
+        <h2>Importance of Horticulture</h2>
+        <ul>
+          <li>Nutritional security — rich source of vitamins, minerals, antioxidants</li>
+          <li>Employment generation — labour-intensive sector</li>
+          <li>Higher income per unit area compared to field crops</li>
+          <li>Export earnings — India exports spices, grapes, mangoes</li>
+        </ul>
+        <div class="stud-didyouknow"><span class="stud-didyouknow__icon">💡</span><p class="stud-didyouknow__text"><strong>Did you know?</strong> India is the world's largest producer of bananas, mangoes, papayas, and spices, and the second largest producer of fruits and vegetables overall.</p></div>
+      `
+    }
+  };
+
+  // Which topics belong to which subject (for sidebar list)
+  const SUBJECT_TOPICS = {
+    agronomy: ['agronomy-intro','crop-production','tillage','irrigation','seed-rate','cropping-systems'],
+    soil: ['soil-formation','soil-ph','soil-fertility','organic-matter','soil-texture'],
+    pathology: ['disease-intro','fungal-diseases','bacterial-diseases','ipm','biocontrol'],
+    horticulture: ['hort-intro','fruit-crops','vegetable-crops','post-harvest'],
+    genetics: ['mendelism','hybridization','mutation','gmo'],
+    economics: ['farm-management','market-linkage','cooperatives','agri-credit'],
+    entomology: ['insect-pests','life-cycles','pesticide-groups']
+  };
+
+  // Flat ordered list for prev/next navigation
+  const TOPIC_ORDER = Object.values(SUBJECT_TOPICS).flat();
+
+  /* ── Progress tracking ─────────────────────────────────────────────── */
+  const READ_KEY = 'agrilearn_read_topics';
+  function getRead() {
+    try { return new Set(JSON.parse(localStorage.getItem(READ_KEY) || '[]')); }
+    catch(e) { return new Set(); }
+  }
+  function saveRead(set) {
+    localStorage.setItem(READ_KEY, JSON.stringify([...set]));
+  }
+  function updateProgress() {
+    const read = getRead();
+    const total = TOPIC_ORDER.length;
+    const pct = Math.round(read.size / total * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-pct').textContent = read.size + ' of ' + total + ' topics read (' + pct + '%)';
+
+    // Update per-subject bars
+    Object.entries(SUBJECT_TOPICS).forEach(([subj, topics]) => {
+      const bar = document.getElementById('bar-' + subj);
+      if (!bar) return;
+      const subjectRead = topics.filter(t => read.has(t)).length;
+      bar.style.width = Math.round(subjectRead / topics.length * 100) + '%';
+    });
+  }
+
+  /* ── State ─────────────────────────────────────────────────────────── */
+  let currentTopic = null;
+
+  /* ── View switching ─────────────────────────────────────────────────── */
+  function showHome() {
+    document.getElementById('stud-home').classList.remove('is-hidden');
+    document.getElementById('stud-article').classList.remove('is-visible');
+    currentTopic = null;
+    document.querySelectorAll('.stud-sidebar__item').forEach(el => el.classList.remove('is-active'));
+    updateProgress();
+  }
+
+  function showTopic(topicId) {
+    const topic = TOPICS[topicId];
+    if (!topic) {
+      // Show placeholder for topics not yet written
+      showTopicPlaceholder(topicId);
+      return;
+    }
+
+    currentTopic = topicId;
+
+    // Switch views
+    document.getElementById('stud-home').classList.add('is-hidden');
+    const art = document.getElementById('stud-article');
+    art.classList.add('is-visible');
+
+    // Breadcrumb
+    document.getElementById('bc-subject').textContent = topic.subject;
+    document.getElementById('bc-topic').textContent = topic.title;
+    document.getElementById('bc-home').onclick = showHome;
+
+    // Header
+    document.getElementById('art-tag').textContent = topic.icon + ' ' + topic.subject;
+    document.getElementById('art-title').textContent = topic.title;
+    document.getElementById('art-read-time').textContent = '📖 ' + topic.readTime;
+
+    // Body
+    document.getElementById('art-body').innerHTML = topic.body;
+
+    // Topic list (sidebar for this subject)
+    const topicList = document.getElementById('stud-topic-list');
+    const subjectTopics = SUBJECT_TOPICS[topic.subjectId] || [];
+    const read = getRead();
+    topicList.innerHTML = '<div class="stud-topic-list__head">' + topic.subject + ' — All Topics</div>' +
+      subjectTopics.map(tid => {
+        const t = TOPICS[tid];
+        const label = t ? t.title : tid.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+        return `<a data-topiclink="${tid}" class="${tid === topicId ? 'is-current' : ''}">${label}${read.has(tid) ? '<span class="stud-topic-check">✓</span>' : ''}</a>`;
+      }).join('');
+
+    topicList.querySelectorAll('[data-topiclink]').forEach(a => {
+      a.addEventListener('click', () => showTopic(a.dataset.topiclink));
+    });
+
+    // Mark read button
+    const mrBtn = document.getElementById('mark-read-btn');
+    const isRead = read.has(topicId);
+    mrBtn.className = 'stud-mark-read' + (isRead ? ' is-done' : '');
+    mrBtn.innerHTML = isRead
+      ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Read'
+      : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Mark as read';
+
+    mrBtn.onclick = () => {
+      const r = getRead();
+      if (r.has(topicId)) { r.delete(topicId); } else { r.add(topicId); }
+      saveRead(r);
+      showTopic(topicId); // re-render to update button + topic list
+    };
+
+    // Prev / Next
+    const idx = TOPIC_ORDER.indexOf(topicId);
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    if (idx > 0) {
+      const prevId = TOPIC_ORDER[idx - 1];
+      const prevT = TOPICS[prevId];
+      prevBtn.hidden = false;
+      document.getElementById('prev-label').textContent = prevT ? prevT.title : prevId;
+      prevBtn.onclick = () => showTopic(prevId);
+    } else { prevBtn.hidden = true; }
+    if (idx < TOPIC_ORDER.length - 1) {
+      const nextId = TOPIC_ORDER[idx + 1];
+      const nextT = TOPICS[nextId];
+      nextBtn.hidden = false;
+      document.getElementById('next-label').textContent = nextT ? nextT.title : nextId;
+      nextBtn.onclick = () => showTopic(nextId);
+    } else { nextBtn.hidden = true; }
+
+    // Active sidebar item
+    document.querySelectorAll('.stud-sidebar__item').forEach(el => {
+      el.classList.toggle('is-active', el.dataset.topic === topicId);
+    });
+
+    // Scroll to top
+    document.querySelector('.stud-main').scrollTop = 0;
+    window.scrollTo(0, 0);
+  }
+
+  function showTopicPlaceholder(topicId) {
+    currentTopic = topicId;
+    document.getElementById('stud-home').classList.add('is-hidden');
+    const art = document.getElementById('stud-article');
+    art.classList.add('is-visible');
+    const label = topicId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    document.getElementById('art-title').textContent = label;
+    document.getElementById('art-tag').textContent = '📌 Coming Soon';
+    document.getElementById('art-body').innerHTML = `<div class="stud-keybox"><p class="stud-keybox__title">🚧 Content Coming Soon</p><ul><li>This topic's notes are being prepared by our curriculum team.</li><li>In the meantime, use the AI assistant on the Farmer Dashboard for general agri queries.</li></ul></div>`;
+    document.getElementById('mark-read-btn').hidden = true;
+    document.getElementById('stud-topic-list').innerHTML = '';
+    document.getElementById('prev-btn').hidden = true;
+    document.getElementById('next-btn').hidden = true;
+    document.getElementById('bc-subject').textContent = '';
+    document.getElementById('bc-topic').textContent = label;
+    document.getElementById('bc-home').onclick = showHome;
+  }
+
+  /* ── Sidebar interactions ────────────────────────────────────────────── */
+  document.querySelectorAll('.stud-sidebar__item').forEach(item => {
+    item.addEventListener('click', () => showTopic(item.dataset.topic));
+  });
+
+  // Collapsible sidebar sections
+  document.querySelectorAll('.stud-sidebar__heading').forEach(heading => {
+    heading.addEventListener('click', () => {
+      const section = heading.closest('.stud-sidebar__section');
+      section.classList.toggle('is-collapsed');
+    });
+  });
+
+  // Subject cards on home → open first topic of that subject
+  document.querySelectorAll('.stud-subj-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const subj = card.dataset.subject;
+      const topics = SUBJECT_TOPICS[subj];
+      if (topics && topics.length) showTopic(topics[0]);
+    });
+  });
+
+  /* ── Breadcrumb home ─────────────────────────────────────────────────── */
+  document.getElementById('bc-home').addEventListener('click', showHome);
+
+  /* ── Search ──────────────────────────────────────────────────────────── */
+  const searchInput = document.getElementById('topic-search');
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.toLowerCase().trim();
+    if (!q) { document.querySelectorAll('.stud-sidebar__item').forEach(el => el.style.display = ''); return; }
+    document.querySelectorAll('.stud-sidebar__item').forEach(el => {
+      const label = (el.textContent || '').toLowerCase();
+      const topicData = TOPICS[el.dataset.topic];
+      const matches = label.includes(q) || (topicData && (topicData.subject.toLowerCase().includes(q) || topicData.body.toLowerCase().includes(q)));
+      el.style.display = matches ? '' : 'none';
+      if (matches) el.closest('.stud-sidebar__section').classList.remove('is-collapsed');
+    });
+  });
+
+  /* ── Mobile sidebar toggle ───────────────────────────────────────────── */
+  const sidebar = document.getElementById('stud-sidebar');
+  document.getElementById('sidebar-toggle').addEventListener('click', () => {
+    sidebar.classList.toggle('is-open');
+  });
+  document.addEventListener('click', e => {
+    if (!sidebar.contains(e.target) && !document.getElementById('sidebar-toggle').contains(e.target)) {
+      sidebar.classList.remove('is-open');
+    }
+  });
+
+  /* ── Init ─────────────────────────────────────────────────────────────── */
+  updateProgress();
+
+})();
+</script>
+</body>
+</html>

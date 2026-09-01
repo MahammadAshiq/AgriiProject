@@ -3,33 +3,45 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SkyCast — Weather Forecast</title>
+<title>SkyCast — Agricultural Weather Finder</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 </head>
 <body>
 <div class="app">
-  <h1>🌤️ SkyCast</h1>
+  <div class="header-bar">
+    <h1>🌤️ SkyCast — Weather Finder</h1>
+    <p class="subtitle">High-precision hyper-local weather &amp; agricultural crop advice powered by Open-Meteo</p>
+  </div>
 
   <div class="search-bar">
-    <input id="cityInput" type="text" placeholder="Search any city or village" />
-    <button onclick="searchCity()">Search</button>
-    <button id="locateBtn" onclick="useMyLocation()" title="Use my current location">📍 My Location</button>
+    <input id="cityInput" type="text" placeholder="Search city, town, or village (e.g. Anandapuram, Vizag)" onkeydown="if(event.key==='Enter') searchCity()" />
+    <button onclick="searchCity()">🔍 Search</button>
+    <button id="locateBtn" onclick="useMyLocation()" title="Use my current GPS location">📍 My Location</button>
   </div>
 
   <div class="unit-toggle">
     <button id="unitBtn" onclick="toggleUnit()">Switch to °F</button>
   </div>
 
-  <div class="status" id="status"></div>
+  <div class="status" id="status">Search a city or tap "My Location" to fetch weather</div>
 
   <div id="content" style="display:none;">
+    <!-- Main Weather Card -->
     <div class="current-card" id="currentCard"></div>
 
-    <div class="section-title">📅 5-Day Forecast</div>
+    <!-- Smart Agricultural Insights Panel -->
+    <div class="section-title">🌾 Smart Farming & Crop Insights</div>
+    <div class="agri-card" id="agriAdviceCard">
+      <!-- Populated via JS -->
+    </div>
+
+    <!-- 6-Day Forecast -->
+    <div class="section-title">📅 6-Day Forecast</div>
     <div class="forecast-row" id="forecastRow"></div>
 
-    <div class="section-title">⏱️ Hourly Temperature (Next 24h)</div>
+    <!-- 24h Hourly Chart -->
+    <div class="section-title">⏱️ 24-Hour Temperature & Rain Trend</div>
     <div class="chart-card">
       <canvas id="hourlyChart" height="90"></canvas>
     </div>

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Choose your role — AgriLearn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+<style>
+  /* ===== Role Select Page ===== */
+  .rs-shell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    background: var(--sage-bg);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Subtle animated background rows */
+  .rs-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.06;
+  }
+  .rs-bg svg { width: 100%; height: 100%; }
+
+  .rs-header {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .rs-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--forest);
+    text-decoration: none;
+    margin-bottom: 28px;
+  }
+  .rs-brand svg { width: 28px; height: 28px; }
+  .rs-header h1 {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0 0 12px;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+  .rs-header h1 em { font-style: italic; color: var(--wheat-dark); }
+  .rs-header p {
+    color: var(--ink-soft);
+    font-size: 15px;
+    margin: 0;
+  }
+
+  /* Cards */
+  .rs-cards {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    width: 100%;
+    max-width: 660px;
+  }
+
+  .rs-card {
+    background: var(--panel);
+    border: 2px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 36px 32px 32px;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out), transform 0.18s var(--ease-out);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    font-family: var(--font-body);
+  }
+  .rs-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.22s var(--ease-out);
+    pointer-events: none;
+  }
+  .rs-card--farmer::before { background: radial-gradient(140% 100% at 0% 0%, #e9f3ec 0%, transparent 60%); }
+  .rs-card--student::before { background: radial-gradient(140% 100% at 0% 0%, #FBF6E9 0%, transparent 60%); }
+
+  .rs-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 48px -18px rgba(22, 36, 27, 0.22);
+  }
+  .rs-card:hover::before { opacity: 1; }
+  .rs-card:hover.rs-card--farmer { border-color: var(--ok); }
+  .rs-card:hover.rs-card--student { border-color: var(--wheat); }
+
+  .rs-card:active { transform: translateY(-1px); }
+
+  .rs-card__icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin-bottom: 22px;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+  }
+  .rs-card--farmer .rs-card__icon { background: var(--ok-bg); }
+  .rs-card--student .rs-card__icon { background: #FBF6E9; }
+
+  .rs-card__title {
+    font-family: var(--font-display);
+    font-size: 1.45rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0 0 8px;
+    position: relative;
+    z-index: 1;
+  }
+  .rs-card__role {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 16px;
+    position: relative;
+    z-index: 1;
+  }
+  .rs-card--farmer .rs-card__role { color: var(--ok); }
+  .rs-card--student .rs-card__role { color: var(--wheat-dark); }
+
+  .rs-card__desc {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    margin: 0 0 22px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .rs-card__features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+  }
+  .rs-card__features li {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .rs-card__features li span.feat-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .rs-card--farmer .feat-dot { background: var(--ok); }
+  .rs-card--student .feat-dot { background: var(--wheat); }
+
+  .rs-card__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    border: none;
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s var(--ease-out), transform 0.1s;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+  }
+  .rs-card--farmer .rs-card__btn { background: var(--forest); color: #F4F1E6; }
+  .rs-card--farmer .rs-card__btn:hover { background: var(--forest-2); }
+  .rs-card--student .rs-card__btn { background: var(--wheat); color: var(--forest); }
+  .rs-card--student .rs-card__btn:hover { background: var(--wheat-dark); color: #fff; }
+
+  /* Loading state on cards */
+  .rs-card.is-loading {
+    pointer-events: none;
+    opacity: 0.75;
+  }
+
+  .rs-footer {
+    position: relative;
+    z-index: 1;
+    margin-top: 32px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .rs-footer a { color: var(--forest); font-weight: 600; text-decoration: none; border-bottom: 1.5px solid var(--wheat); }
+
+  /* Card entrance animations */
+  .rs-card {
+    animation: card-in 0.45s var(--ease-out) both;
+  }
+  .rs-card:nth-child(2) { animation-delay: 0.08s; }
+</style>
+</head>
+<body>
+
+<div class="rs-bg" aria-hidden="true">
+  <svg viewBox="0 0 1200 800" preserveAspectRatio="none">
+    <path class="auth-brand__row-line" d="M-50 80 C 300 40, 900 120, 1250 60" />
+    <path class="auth-brand__row-line" d="M-50 200 C 300 160, 900 240, 1250 180" />
+    <path class="auth-brand__row-line" d="M-50 320 C 300 280, 900 360, 1250 300" />
+    <path class="auth-brand__row-line" d="M-50 440 C 300 400, 900 480, 1250 420" />
+    <path class="auth-brand__row-line" d="M-50 560 C 300 520, 900 600, 1250 540" />
+    <path class="auth-brand__row-line" d="M-50 680 C 300 640, 900 720, 1250 660" />
+  </svg>
+</div>
+
+<div class="rs-shell">
+  <header class="rs-header">
+    <a href="login.html" class="rs-brand">
+      <svg viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="16" r="15" stroke="#D9A441" stroke-width="1.4"/>
+        <path d="M16 23c0-6 3-10 7-12-1 6-3 10-7 12Z" fill="#D9A441"/>
+        <path d="M16 23c0-7-3.5-11-8-13 1 6.5 3.5 11 8 13Z" fill="#1F4430"/>
+      </svg>
+      AgriLearn
+    </a>
+    <h1>How will you use<br/><em>AgriLearn?</em></h1>
+    <p>Your choice shapes your dashboard — you can always create the other account later with the same email.</p>
+  </header>
+
+  <div class="rs-cards">
+
+    <!-- Farmer Card -->
+    <div class="rs-card rs-card--farmer" id="farmer-card" role="button" tabindex="0" aria-label="I am a Farmer">
+      <div class="rs-card__icon">🌾</div>
+      <p class="rs-card__role">Farmer</p>
+      <h2 class="rs-card__title">I work the field</h2>
+      <p class="rs-card__desc">Get AI-powered crop advice, weather forecasts, field mapping, and pest management tools designed for real-world farming.</p>
+      <ul class="rs-card__features">
+        <li><span class="feat-dot"></span>AI crop disease & pest advisor</li>
+        <li><span class="feat-dot"></span>Live weather forecast for your field</li>
+        <li><span class="feat-dot"></span>Crop plan map builder</li>
+        <li><span class="feat-dot"></span>Fertilizer & soil guidance</li>
+      </ul>
+      <button class="rs-card__btn" id="farmer-btn">
+        <span class="spinner" aria-hidden="true"></span>
+        <span>Continue as Farmer →</span>
+      </button>
+    </div>
+
+    <!-- Student Card -->
+    <div class="rs-card rs-card--student" id="student-card" role="button" tabindex="0" aria-label="I am a Student">
+      <div class="rs-card__icon">📚</div>
+      <p class="rs-card__role">Student</p>
+      <h2 class="rs-card__title">I study agriculture</h2>
+      <p class="rs-card__desc">Access structured BSc Agriculture notes, topic-wise lessons, and curated resources — like GeeksForGeeks, but for agri science.</p>
+      <ul class="rs-card__features">
+        <li><span class="feat-dot"></span>Agronomy, Soil Science, Plant Pathology</li>
+        <li><span class="feat-dot"></span>Genetics, Horticulture, Agri Economics</li>
+        <li><span class="feat-dot"></span>Topic-wise structured notes</li>
+        <li><span class="feat-dot"></span>Progress tracking</li>
+      </ul>
+      <button class="rs-card__btn" id="student-btn">
+        <span class="spinner" aria-hidden="true"></span>
+        <span>Continue as Student →</span>
+      </button>
+    </div>
+
+  </div>
+
+  <p class="rs-footer">
+    Changed your mind? <a href="login.html">Back to sign in</a>
+  </p>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // Read context passed from signup
+  const params = new URLSearchParams(window.location.search);
+  const email  = params.get('email') || '';
+  const token  = params.get('token') || '';
+
+  // If no token, user somehow landed here directly — send to signup
+  if (!token && !email) {
+    window.location.href = 'signup.html';
+  }
+
+  function pickRole(role) {
+    const card = role === 'farmer' ? document.getElementById('farmer-card') : document.getElementById('student-card');
+    const btn  = role === 'farmer' ? document.getElementById('farmer-btn')  : document.getElementById('student-btn');
+
+    card.classList.add('is-loading');
+    btn.disabled = true;
+    btn.querySelector('.spinner').style.display = 'inline-block';
+
+    // Call the profile/setup endpoint to save the role
+    fetch('/api/profile/setup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({
+        email: email,
+        role: role,
+        // minimal required — name & phone can be filled in later
+        name: email.split('@')[0],
+        phone: ''
+      })
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      // Update token if the server issued a new one with role embedded
+      const newToken = data.token || token;
+      localStorage.setItem('agrilearn_token', newToken);
+      localStorage.setItem('agrilearn_role', role);
+      localStorage.setItem('agrilearn_email', email);
+
+      // Redirect to login with role + email pre-filled
+      const loginUrl = new URL('login.html', window.location.href);
+      loginUrl.searchParams.set('registered', '1');
+      loginUrl.searchParams.set('email', email);
+      loginUrl.searchParams.set('role', role);
+      window.location.href = loginUrl.toString();
+    })
+    .catch(function(err) {
+      // If backend isn't running, still save role locally and redirect
+      localStorage.setItem('agrilearn_token', token);
+      localStorage.setItem('agrilearn_role', role);
+      localStorage.setItem('agrilearn_email', email);
+
+      const loginUrl = new URL('login.html', window.location.href);
+      loginUrl.searchParams.set('registered', '1');
+      loginUrl.searchParams.set('email', email);
+      loginUrl.searchParams.set('role', role);
+      window.location.href = loginUrl.toString();
+    });
+  }
+
+  document.getElementById('farmer-card').addEventListener('click', function() { pickRole('farmer'); });
+  document.getElementById('student-card').addEventListener('click', function() { pickRole('student'); });
+
+  // Keyboard support
+  ['farmer-card', 'student-card'].forEach(function(id) {
+    document.getElementById(id).addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        this.click();
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>
