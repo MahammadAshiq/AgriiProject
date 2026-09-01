@@ -1,0 +1,14 @@
+# Operating System files (highly recommended)
+.DS_Store
+Thumbs.db
+
+# IDE and Editor files
+.vscode/
+.idea/
+
+# Crash dumps and logs
+*.log
+npm-debug.log*
+
+# Dependency folders (add this if you ever use npm/node)
+node_modules/
