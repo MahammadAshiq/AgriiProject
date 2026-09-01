@@ -18,6 +18,18 @@
       widget (Google reCAPTCHA v3/Enterprise, hCaptcha, or Cloudflare
       Turnstile) — drop their widget script in and read its token on submit
       instead of the `verified` boolean used here.
+
+   FIX LOG
+   -------
+   - finishAuth() now accepts a `role` and persists it to localStorage
+     ('agrilearn_role') at the moment of login, then redirects to the
+     matching dashboard (dashboard.html for farmer, student-dashboard.html
+     for student) instead of always hardcoding dashboard.html. Previously
+     the role toggle on the login page was cosmetic — it never got saved,
+     so whatever stale role was already in localStorage (e.g. from an
+     earlier signup) silently won, and dashboard.html's own auth guard
+     would bounce the user to student-dashboard.html regardless of which
+     button they clicked.
    ========================================================================== */
 
 (function () {
@@ -249,7 +261,17 @@
     return res.json(); // { email, name, picture, ... }
   }
 
-  function finishAuth({ method, email, mode }) {
+  // ------------------------------------------------------------------
+  // finishAuth
+  // FIXED: now takes `role` and is the single source of truth for both
+  // (a) persisting the chosen role to localStorage, and
+  // (b) picking which dashboard to redirect a logging-in user to.
+  // Previously this always hardcoded "dashboard.html" (farmer) and never
+  // touched localStorage, so a stale role from a previous session (or the
+  // role page) silently decided where the user actually ended up, no
+  // matter which toggle button they clicked on the login page.
+  // ------------------------------------------------------------------
+  function finishAuth({ method, email, mode, role }) {
     if (mode === "signup") {
       showPageTransition(email ? `Creating your account for ${email}…` : "Creating your account…");
       // Send the freshly-registered user back to login, exactly like the
@@ -261,15 +283,26 @@
         window.location.href = url.toString();
       });
     }
+
     showPageTransition(email ? `Signing you in as ${email}…` : "Signing you in…");
+
+    // Resolve the role to use: whatever was explicitly passed in wins,
+    // falling back to the login page's toggle state, then to whatever
+    // was already stored (e.g. set earlier via role-connect.html), then
+    // finally defaulting to farmer so we never redirect nowhere.
+    const finalRole = role || (typeof selectedRole !== "undefined" ? selectedRole : null) || localStorage.getItem("agrilearn_role") || "farmer";
+
     // Real app: this is where you'd store the returned JWT/session and
     // redirect into the app shell (role-based dashboard, etc).
     sessionStorage.setItem("agrilearn_demo_session", JSON.stringify({ email, method, at: Date.now() }));
+    localStorage.setItem("agrilearn_role", finalRole);
+    if (email) localStorage.setItem("agrilearn_email", email);
+
     return wait(900).then(() => {
       setPageTransitionText("Redirecting to your dashboard…");
       return wait(500);
     }).then(() => {
-      window.location.href = "dashboard.html";
+      window.location.href = finalRole === "student" ? "student-dashboard.html" : "dashboard.html";
     });
   }
 
@@ -307,7 +340,9 @@
             ? `Setting up AgriLearn for ${profile.email}…`
             : `Welcome back, ${profile.given_name || profile.name || "there"}…`);
           await wait(600);
-          await finishAuth({ method: "google", email: profile.email, mode });
+          // FIXED: pass the current role-toggle selection through so a
+          // Google sign-in on the login page respects Farmer/Student too.
+          await finishAuth({ method: "google", email: profile.email, mode, role: selectedRole });
         } catch (err) {
           setButtonLoading(btn, false);
           hidePageTransition();
@@ -364,6 +399,21 @@
       if (emailField && params.get("email")) emailField.value = params.get("email");
     }
 
+    // If we arrived here with a role already chosen (e.g. from
+    // role-connect.html via ?role=student), reflect that in the toggle
+    // so it's not silently out of sync with what's about to be saved.
+    if (roleToggle) {
+      const urlRole = params.get("role");
+      if (urlRole === "farmer" || urlRole === "student") {
+        selectedRole = urlRole;
+        $$(".role-toggle__btn", roleToggle).forEach((b) => {
+          const isMatch = b.dataset.role === urlRole;
+          b.classList.toggle("is-active", isMatch);
+          b.setAttribute("aria-checked", isMatch ? "true" : "false");
+        });
+      }
+    }
+
     loginForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const emailField = $("#login-email-field");
@@ -383,9 +433,11 @@
       const submitBtn = $("#login-submit");
       setButtonLoading(submitBtn, true);
       // `selectedRole` ("farmer" | "student") goes along with the request so
-      // your backend can route to the matching role-specific login endpoint.
+      // your backend can route to the matching role-specific login endpoint,
+      // and is now also passed into finishAuth so it actually gets saved
+      // and used to pick the right dashboard.
       fakeApiCall({ email, password, role: selectedRole }, { failRate: 0 })
-        .then(() => finishAuth({ method: "password", email, mode: "login" }))
+        .then(() => finishAuth({ method: "password", email, mode: "login", role: selectedRole }))
         .catch((err) => {
           setButtonLoading(submitBtn, false);
           showToast(err.message);
