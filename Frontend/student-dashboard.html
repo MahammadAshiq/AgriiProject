@@ -733,12 +733,13 @@ body.stud-body {
 
     <div class="hr-navbar__right">
       <div class="hr-stat-pill hr-stat-pill--xp" title="Your Earned XP Points">
-        ⚡ <span id="user-xp-display">450</span> XP
+        ⚡ <span id="user-xp-display">0</span> XP
       </div>
       <div class="hr-stat-pill hr-stat-pill--streak" title="Daily Login Streak">
-        🔥 <span id="user-streak-display">3</span> Days
+        🔥 <span id="user-streak-display">0</span> Days
       </div>
       <img src="https://api.dicebear.com/7.x/bottts/svg?seed=AgriStudent" id="nav-user-avatar" class="hr-user-avatar" alt="User Avatar" title="View Profile" data-tab-trigger="profile" />
+      <button id="btn-sign-out" title="Sign Out" style="background: none; border: 1px solid rgba(255,255,255,0.15); color: #f87171; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 5px; transition: all 0.2s ease;">🚪 Sign Out</button>
     </div>
   </header>
 
@@ -848,8 +849,8 @@ body.stud-body {
             </label>
           </div>
 
-          <h3 style="margin: 0 0 4px;" id="profile-display-name">Mahammad Ashiq</h3>
-          <p style="font-size: 13px; color: var(--hr-text-muted); margin: 0 0 16px;" id="profile-display-email">student@agrilearn.edu</p>
+          <h3 style="margin: 0 0 4px;" id="profile-display-name">Student</h3>
+          <p style="font-size: 13px; color: var(--hr-text-muted); margin: 0 0 16px;" id="profile-display-email">loading...</p>
 
           <div style="font-size: 13px; color: #475569; margin-bottom: 20px; line-height: 1.6; text-align: left; background: #f8fafc; padding: 12px; border-radius: 8px;">
             <div>🎓 <strong>Degree:</strong> B.Sc. (Hons.) Agriculture</div>
@@ -870,7 +871,7 @@ body.stud-body {
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
               <div>
                 <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Full Name</label>
-                <input type="text" id="setting-name" value="Mahammad Ashiq" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box;" />
+                <input type="text" id="setting-name" value="" placeholder="Enter your name" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box;" />
               </div>
               <div>
                 <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Year of Study</label>
@@ -898,7 +899,7 @@ body.stud-body {
       <h2>AgriLearn Academy</h2>
       <p style="font-size: 14px; color: #451a03;">This certificate is proudly awarded to</p>
 
-      <div class="cert-name" id="cert-recipient-name">Mahammad Ashiq</div>
+      <div class="cert-name" id="cert-recipient-name">Student</div>
 
       <p style="font-size: 14.5px; color: #78350f; max-width: 460px; margin: 12px auto;">
         for successfully completing the rigorous evaluation in <br /><strong id="cert-course-title" style="color: #451a03;">Certified Crop Advisor (Level 1)</strong><br /> with an outstanding score of <strong id="cert-score-display">90%</strong>.
@@ -1052,7 +1053,7 @@ body.stud-body {
         { rank: 1, name: "Priya Sharma", college: "IARI New Delhi", subjects: 25, badges: 8, xp: 2450 },
         { rank: 2, name: "Rahul Verma", college: "TNAU Coimbatore", subjects: 23, badges: 7, xp: 2100 },
         { rank: 3, name: "Ananya Patel", college: "GBPUAT Pantnagar", subjects: 21, badges: 6, xp: 1850 },
-        { rank: 4, name: "Mahammad Ashiq (You)", college: "Agri Science Univ", subjects: 14, badges: 4, xp: 450, isYou: true },
+        { rank: 4, name: "You", college: "Agri Science Univ", subjects: 14, badges: 4, xp: 0, isYou: true },
         { rank: 5, name: "Vikram Singh", college: "PAU Ludhiana", subjects: 12, badges: 3, xp: 410 }
       ];
 
@@ -1073,22 +1074,33 @@ body.stud-body {
       ];
 
       /* ---------------------------------------------------------------- */
-      /* APP STATE & PERSISTENCE                                           */
+      /* APP STATE & PERSISTENCE (per-user via email key)                   */
       /* ---------------------------------------------------------------- */
+      const loggedInEmail = localStorage.getItem("agrilearn_email") || "";
+      const userKey = loggedInEmail ? `agri_${loggedInEmail.replace(/[^a-zA-Z0-9]/g, "_")}` : "agri_guest";
+
+      // Derive display name from email (part before @) if no saved name
+      function emailToName(email) {
+        if (!email) return "Student";
+        const local = email.split("@")[0];
+        return local.replace(/[._]/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      }
+
       let appState = {
-        xp: parseInt(localStorage.getItem("agri_xp") || "450"),
-        streak: parseInt(localStorage.getItem("agri_streak") || "3"),
-        avatar: localStorage.getItem("agri_avatar") || PRESET_AVATARS[0],
-        name: localStorage.getItem("agri_name") || "Mahammad Ashiq",
+        xp: parseInt(localStorage.getItem(userKey + "_xp") || "0"),
+        streak: parseInt(localStorage.getItem(userKey + "_streak") || "0"),
+        avatar: localStorage.getItem(userKey + "_avatar") || PRESET_AVATARS[0],
+        name: localStorage.getItem(userKey + "_name") || emailToName(loggedInEmail),
+        email: loggedInEmail,
         activeTab: "prepare",
         activeSubjectId: "agronomy"
       };
 
       function saveState() {
-        localStorage.setItem("agri_xp", appState.xp);
-        localStorage.setItem("agri_streak", appState.streak);
-        localStorage.setItem("agri_avatar", appState.avatar);
-        localStorage.setItem("agri_name", appState.name);
+        localStorage.setItem(userKey + "_xp", appState.xp);
+        localStorage.setItem(userKey + "_streak", appState.streak);
+        localStorage.setItem(userKey + "_avatar", appState.avatar);
+        localStorage.setItem(userKey + "_name", appState.name);
         updateHeaderStats();
       }
 
@@ -1098,8 +1110,20 @@ body.stud-body {
         document.getElementById("nav-user-avatar").src = appState.avatar;
         document.getElementById("profile-main-avatar").src = appState.avatar;
         document.getElementById("profile-display-name").textContent = appState.name;
+        document.getElementById("profile-display-email").textContent = appState.email || "Not logged in";
         document.getElementById("profile-xp-val").textContent = appState.xp;
+        // Update settings form
+        const nameInput = document.getElementById("setting-name");
+        if (nameInput && !nameInput._userEdited) nameInput.value = appState.name;
       }
+
+      // Update leaderboard "You" entry with actual user info
+      LEADERBOARD_DATA.forEach(u => {
+        if (u.isYou) {
+          u.name = appState.name + " (You)";
+          u.xp = appState.xp;
+        }
+      });
 
       /* ---------------------------------------------------------------- */
       /* TAB SWITCHING SYSTEM                                              */
@@ -1122,6 +1146,16 @@ body.stud-body {
       });
 
       document.getElementById("nav-user-avatar").addEventListener("click", () => switchTab("profile"));
+
+      // Sign Out Button
+      document.getElementById("btn-sign-out").addEventListener("click", () => {
+        if (confirm("Are you sure you want to sign out?")) {
+          localStorage.removeItem("agrilearn_email");
+          localStorage.removeItem("agrilearn_role");
+          sessionStorage.removeItem("agrilearn_demo_session");
+          window.location.href = "login.html";
+        }
+      });
 
       // Mobile Menu Toggle
       const menuToggle = document.getElementById("hr-menu-toggle");
