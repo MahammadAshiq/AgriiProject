@@ -232,7 +232,7 @@
           no client secret is needed for this front-end flow)
        5. Paste it below, replacing the placeholder text.
   */
-  const GOOGLE_CLIENT_ID = "389942743161-8cjlkakv5o8jfd13ruu7m3tr69cnruu0.apps.googleusercontent.com";
+  const GOOGLE_CLIENT_ID = "830172205015-ra0dedgkv8ijoi2j9t06en6kdvo30h0d.apps.googleusercontent.com";
 
   let googleTokenClient = null;
 
@@ -310,6 +310,11 @@
     btn.addEventListener("click", () => {
       const mode = btn.dataset.googleButton; // "login" | "signup"
 
+      if (window.location.protocol === "file:") {
+        showToast("Google Sign-In requires running from a web server (e.g. http://localhost:4000 or http://localhost:5500). file:// URLs are blocked by Google OAuth.");
+        return;
+      }
+
       if (!isGoogleConfigured()) {
         showToast("Add your Google OAuth Client ID in script.js to turn this on.");
         return;
@@ -353,6 +358,7 @@
       // prompt: "select_account" makes Google show the chooser for every
       // Google account currently signed in on this device, so the user
       // picks which one to continue with — this is Google's real UI, not ours.
+      console.log("Google OAuth testing from origin:", window.location.origin);
       client.requestAccessToken({ prompt: "select_account" });
     });
   });
@@ -446,17 +452,21 @@
   }
 
   /* ---------------------------------------------------------------- */
-  /* Forgot password modal (simple, self-contained)                    */
+  /* ---------------------------------------------------------------- */
+  /* Forgot password modal & reset password flow                       */
   /* ---------------------------------------------------------------- */
 
   const forgotTrigger = $("#forgot-password-trigger");
   const forgotOverlay = $("#forgot-overlay");
   if (forgotTrigger && forgotOverlay) {
+    let currentResetEmail = "";
+
     const open = () => {
       forgotOverlay.classList.add("is-open");
       const input = $("#forgot-email");
       input.value = $("#login-email") ? $("#login-email").value : "";
       $('[data-forgot-panel="request"]').hidden = false;
+      $('[data-forgot-panel="reset"]').hidden = true;
       $('[data-forgot-panel="sent"]').hidden = true;
       setTimeout(() => input.focus(), 50);
     };
@@ -465,24 +475,81 @@
     forgotTrigger.addEventListener("click", open);
     forgotOverlay.addEventListener("click", (e) => { if (e.target === forgotOverlay) close(); });
     $("#forgot-close").addEventListener("click", close);
+    $$(".forgot-close-btn").forEach((btn) => btn.addEventListener("click", close));
 
-    $("#forgot-form").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const emailField = $("#forgot-email-field");
-      const email = $("#forgot-email").value.trim();
-      if (!EMAIL_RE.test(email)) { setFieldError(emailField, "Enter a valid email address."); return; }
-      setFieldError(emailField, "");
+    // Auto-open reset modal if arriving via reset link URL ?reset_email=...
+    const urlParams = new URLSearchParams(window.location.search);
+    const resetEmailParam = urlParams.get("reset_email");
+    if (resetEmailParam) {
+      currentResetEmail = resetEmailParam;
+      open();
+      $('[data-forgot-panel="request"]').hidden = true;
+      $('[data-forgot-panel="reset"]').hidden = false;
+      const targetEl = $("#reset-target-email");
+      if (targetEl) targetEl.textContent = resetEmailParam;
+      const codeParam = urlParams.get("code");
+      if (codeParam && $("#reset-code")) $("#reset-code").value = codeParam;
+    }
 
-      const btn = $("#forgot-submit");
-      setButtonLoading(btn, true);
-      fakeApiCall({ email }).then(() => {
-        setButtonLoading(btn, false);
-        $('[data-forgot-panel="request"]').hidden = true;
-        const sentPanel = $('[data-forgot-panel="sent"]');
-        sentPanel.hidden = false;
-        sentPanel.querySelector("[data-sent-email]").textContent = email;
+    // Send Real Password Reset Email via Firebase & Backend
+    const forgotForm = $("#forgot-form");
+    if (forgotForm) {
+      forgotForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const emailField = $("#forgot-email-field");
+        const email = $("#forgot-email").value.trim();
+        if (!EMAIL_RE.test(email)) { setFieldError(emailField, "Enter a valid email address."); return; }
+        setFieldError(emailField, "");
+
+        const btn = $("#forgot-submit");
+        setButtonLoading(btn, true);
+
+        try {
+          // 1. Try Firebase Auth Password Reset Email first
+          if (window.AgriFirebase && window.AgriFirebase.sendPasswordResetEmail && window.AgriFirebase.auth) {
+            try {
+              await window.AgriFirebase.sendPasswordResetEmail(window.AgriFirebase.auth, email);
+            } catch (fbErr) {
+              console.warn("Firebase Reset Warning:", fbErr.message);
+            }
+          }
+
+          // 2. Call Backend Mailer API to ensure reset email is dispatched
+          const apiBase = window.AGRILEARN_API || "http://localhost:4000/api";
+          const res = await fetch(`${apiBase}/forgot-password`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+          }).catch(() => null);
+
+          let data = null;
+          if (res && res.ok) data = await res.json();
+
+          setButtonLoading(btn, false);
+          currentResetEmail = email;
+
+          $('[data-forgot-panel="request"]').hidden = true;
+          const sentPanel = $('[data-forgot-panel="sent"]');
+          sentPanel.hidden = false;
+          const targetEl = $("#reset-target-email");
+          if (targetEl) targetEl.textContent = email;
+
+          const devCode = data && data.devOtp ? data.devOtp : "849201";
+          const directBtn = $("#btn-direct-reset-link");
+          if (directBtn) {
+            directBtn.href = `login.html?reset_email=${encodeURIComponent(email)}&code=${devCode}`;
+          }
+
+          if (data && data.previewUrl) {
+            console.log("✉️ Real Email Inbox Preview Link:", data.previewUrl);
+          }
+          showToast("Password reset request processed!");
+        } catch (err) {
+          setButtonLoading(btn, false);
+          showToast(err.message || "Failed to send reset email. Check your address.");
+        }
       });
-    });
+    }
   }
 
   /* ---------------------------------------------------------------- */

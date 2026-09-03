@@ -255,6 +255,95 @@ a { color: inherit; }
 .auth-card__sub a:hover { color: var(--wheat-dark); }
 
 /* ---------------------------------------------------------------------- */
+/* Role Toggle Switch (Farmer vs Student Selection)                       */
+/* ---------------------------------------------------------------------- */
+
+.role-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  background: #F3F0EA;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1.5px solid #E3DDD0;
+  margin-bottom: 24px;
+  position: relative;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.role-toggle__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #5C6B5E;
+  background: transparent;
+  border: 1.5px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  user-select: none;
+}
+
+.role-toggle__btn:hover {
+  color: #1E3A2B;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.role-toggle__btn .role-icon {
+  font-size: 1.15rem;
+  transition: transform 0.2s ease;
+}
+
+.role-toggle__btn .role-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  color: #FFF;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  margin-left: 2px;
+}
+
+/* Active State for Farmer */
+.role-toggle__btn.is-active[data-role="farmer"] {
+  background: #1E3A2B;
+  color: #FFFFFF;
+  border-color: #1E3A2B;
+  box-shadow: 0 4px 14px rgba(30, 58, 43, 0.3), 0 1px 3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+/* Active State for Student */
+.role-toggle__btn.is-active[data-role="student"] {
+  background: #2A4D69;
+  color: #FFFFFF;
+  border-color: #2A4D69;
+  box-shadow: 0 4px 14px rgba(42, 77, 105, 0.3), 0 1px 3px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.role-toggle__btn.is-active .role-icon {
+  transform: scale(1.15);
+}
+
+.role-toggle__btn.is-active .role-check {
+  opacity: 1;
+  transform: scale(1);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ---------------------------------------------------------------------- */
 /* Banner (success / info messages from redirects)                        */
 /* ---------------------------------------------------------------------- */
 
@@ -1047,5 +1136,56 @@ a { color: inherit; }
 }
 @media (prefers-reduced-motion: reduce) {
   .auth-card { animation: none; }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Modal Overlay & Reset Password Modal                                   */
+/* ---------------------------------------------------------------------- */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  padding: 16px;
+}
+
+.modal-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.gsi-modal {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  transform: scale(0.92);
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modal-overlay.is-open .gsi-modal {
+  transform: scale(1);
+}
+
+.gsi-modal__title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.gsi-modal__sub {
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  margin: 0;
 }
 

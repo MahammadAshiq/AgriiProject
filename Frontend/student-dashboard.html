@@ -4,1251 +4,1398 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Student Portal — AgriLearn</title>
-<meta name="description" content="BSc Agriculture learning portal — structured notes, topics, and resources for agri students." />
+<meta name="description" content="HackerRank & GFG style learning platform for B.Sc. Agriculture students — 25 Subjects, Tests, Quizzes, Certifications, Leaderboard, and Profile." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
+<script type="module" src="firebase-config.js"></script>
 <style>
 /* =====================================================================
-   Student Dashboard — GFG/W3Schools style for BSc Agriculture
+   HackerRank + GFG/W3Schools Style B.Sc. Agriculture Student Dashboard
    ===================================================================== */
 
-/* Reset dash-body for student portal */
-.stud-body {
-  background: #f8f9fa;
+:root {
+  --hr-dark: #0e141e;
+  --hr-topbar: #17212b;
+  --hr-green: #00ea64;
+  --hr-green-dark: #00b84c;
+  --hr-blue: #3273dc;
+  --hr-card-bg: #ffffff;
+  --hr-border: #e2e8f0;
+  --hr-text-muted: #64748b;
+}
+
+body.stud-body {
+  background: #f1f5f9;
   min-height: 100vh;
   font-family: var(--font-body);
+  margin: 0;
+  color: #1e293b;
 }
 
-/* ── Topbar ─────────────────────────────────────────────────────────── */
-.stud-topbar {
+/* ── HackerRank Top Navigation Bar ──────────────────────────────────── */
+.hr-navbar {
   position: sticky;
   top: 0;
-  z-index: 40;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0 clamp(12px, 2.5vw, 28px);
-  height: 56px;
-  background: var(--forest);
-  color: #F4F1E6;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-}
-
-.stud-topbar__brand {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  text-decoration: none;
-  color: #F4F1E6;
-  flex-shrink: 0;
-}
-.stud-topbar__brand svg { width: 24px; height: 24px; }
-
-/* Search */
-.stud-search {
-  flex: 1;
-  max-width: 500px;
-  margin: 0 auto;
-  position: relative;
-}
-.stud-search input {
-  width: 100%;
-  padding: 8px 14px 8px 38px;
-  border-radius: 999px;
-  border: none;
-  background: rgba(255,255,255,0.12);
-  color: #F4F1E6;
-  font-family: var(--font-body);
-  font-size: 13.5px;
-  outline: none;
-  transition: background 0.15s;
-}
-.stud-search input::placeholder { color: rgba(244,241,230,0.5); }
-.stud-search input:focus { background: rgba(255,255,255,0.2); }
-.stud-search__icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: rgba(244,241,230,0.55);
-  pointer-events: none;
-}
-
-.stud-topbar__right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-  margin-left: auto;
-}
-.stud-user {
-  font-size: 13px;
-  color: #C7D6C9;
-  display: none;
-}
-@media (min-width: 640px) { .stud-user { display: block; } }
-
-/* ── Layout ─────────────────────────────────────────────────────────── */
-.stud-layout {
-  display: flex;
-  min-height: calc(100vh - 56px);
-}
-
-/* ── Sidebar ─────────────────────────────────────────────────────────── */
-.stud-sidebar {
-  width: 260px;
-  flex-shrink: 0;
-  background: #fff;
-  border-right: 1px solid #e0e4db;
-  position: sticky;
-  top: 56px;
-  height: calc(100vh - 56px);
-  overflow-y: auto;
-  padding: 16px 0 32px;
-}
-
-.stud-sidebar__section {
-  margin-bottom: 4px;
-}
-
-.stud-sidebar__heading {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-  padding: 14px 18px 6px;
-  cursor: pointer;
+  z-index: 50;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  height: 60px;
+  background: var(--hr-dark);
+  padding: 0 clamp(16px, 3vw, 36px);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.hr-navbar__left {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.hr-navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  text-decoration: none;
+  letter-spacing: 0.05em;
+}
+
+.hr-navbar__brand svg {
+  width: 26px;
+  height: 26px;
+}
+
+.hr-nav__links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hr-nav__link {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #94a3b8;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
   user-select: none;
 }
-.stud-sidebar__heading:hover { color: var(--ink); }
-.stud-sidebar__arrow {
-  font-size: 11px;
-  transition: transform 0.2s;
-  display: inline-block;
-}
-.stud-sidebar__section.is-collapsed .stud-sidebar__arrow { transform: rotate(-90deg); }
-.stud-sidebar__section.is-collapsed .stud-sidebar__list { display: none; }
 
-.stud-sidebar__list {
+.hr-nav__link:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.hr-nav__link.is-active {
+  color: #ffffff;
+  background: rgba(0, 234, 100, 0.15);
+  font-weight: 600;
+  border-bottom: 2px solid var(--hr-green);
+}
+
+.hr-navbar__right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.hr-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.hr-stat-pill--xp {
+  background: rgba(0, 234, 100, 0.15);
+  color: var(--hr-green);
+  border: 1px solid rgba(0, 234, 100, 0.3);
+}
+
+.hr-stat-pill--streak {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.hr-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--hr-green);
+  cursor: pointer;
+}
+
+/* Mobile Nav Toggle */
+.hr-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .hr-nav__links {
+    display: none;
+  }
+  .hr-menu-toggle {
+    display: block;
+  }
+  .hr-nav__links.is-mobile-open {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: var(--hr-dark);
+    padding: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* ── Container Layouts ────────────────────────────────────────────────── */
+.hr-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: clamp(16px, 3vw, 32px) clamp(16px, 3vw, 28px);
+}
+
+.hr-tab-pane {
+  display: none;
+}
+
+.hr-tab-pane.is-active {
+  display: block;
+}
+
+/* ── TAB 1: PREPARE (25 SUBJECTS GFG/W3SCHOOLS LAYOUT) ────────────────── */
+.prep-layout {
+  display: flex;
+  gap: 24px;
+  min-height: calc(100vh - 120px);
+}
+
+.prep-sidebar {
+  width: 290px;
+  flex-shrink: 0;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid var(--hr-border);
+  padding: 16px;
+  height: fit-content;
+  position: sticky;
+  top: 76px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.prep-search {
+  margin-bottom: 16px;
+}
+
+.prep-search input {
+  width: 100%;
+  padding: 9px 12px 9px 34px;
+  border-radius: 8px;
+  border: 1.5px solid #cbd5e1;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.prep-search input:focus {
+  border-color: var(--hr-green-dark);
+  box-shadow: 0 0 0 3px rgba(0, 184, 76, 0.15);
+}
+
+.prep-group {
+  margin-bottom: 12px;
+}
+
+.prep-group__title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--hr-text-muted);
+  letter-spacing: 0.06em;
+  padding: 6px 8px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.prep-subject-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
-.stud-sidebar__item {
-  display: block;
-  padding: 8px 18px 8px 26px;
+
+.prep-subject-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
   font-size: 13px;
-  color: var(--ink);
+  font-weight: 500;
+  color: #334155;
+  border-radius: 6px;
   cursor: pointer;
-  border-left: 3px solid transparent;
-  transition: background 0.12s, border-color 0.12s, color 0.12s;
-  line-height: 1.4;
+  transition: all 0.15s ease;
 }
-.stud-sidebar__item:hover {
-  background: #f1f3ec;
-  border-left-color: var(--line);
+
+.prep-subject-item:hover {
+  background: #f8fafc;
+  color: #0f172a;
 }
-.stud-sidebar__item.is-active {
-  background: var(--ok-bg);
-  border-left-color: var(--ok);
-  color: var(--ok);
+
+.prep-subject-item.is-active {
+  background: #e6f9ed;
+  color: #047857;
   font-weight: 600;
+  border-left: 3.5px solid var(--hr-green-dark);
 }
 
-/* Mobile sidebar toggle */
-.stud-sidebar-toggle {
-  display: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #F4F1E6;
-  padding: 6px;
-}
-@media (max-width: 860px) {
-  .stud-sidebar-toggle { display: flex; }
-  .stud-sidebar {
-    position: fixed;
-    top: 56px;
-    left: 0;
-    z-index: 30;
-    transform: translateX(-100%);
-    transition: transform 0.25s var(--ease-out);
-    box-shadow: 4px 0 20px rgba(0,0,0,0.1);
-  }
-  .stud-sidebar.is-open { transform: translateX(0); }
-}
-
-/* ── Main content ────────────────────────────────────────────────────── */
-.stud-main {
+/* Article Reader (GeeksforGeeks / W3Schools Style) */
+.prep-content {
   flex: 1;
   min-width: 0;
-  padding: clamp(16px, 3vw, 36px) clamp(16px, 4vw, 48px);
-  max-width: 860px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid var(--hr-border);
+  padding: clamp(20px, 4vw, 40px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-/* ── Home / browse view ──────────────────────────────────────────────── */
-.stud-home { }
-
-.stud-home__hero {
-  background: linear-gradient(135deg, var(--forest) 0%, #2C5A3E 100%);
-  border-radius: var(--radius-lg);
-  padding: 32px 36px;
-  color: #F4F1E6;
-  margin-bottom: 32px;
-  position: relative;
-  overflow: hidden;
-}
-.stud-home__hero::before {
-  content: "";
-  position: absolute;
-  right: -20px; top: -20px;
-  width: 180px; height: 180px;
-  background: rgba(217,164,65,0.12);
-  border-radius: 50%;
-}
-.stud-home__hero-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--wheat);
-  margin: 0 0 8px;
-}
-.stud-home__hero h1 {
-  font-family: var(--font-display);
-  font-size: clamp(1.5rem, 3vw, 2.1rem);
-  margin: 0 0 8px;
-  line-height: 1.15;
-}
-.stud-home__hero h1 em { font-style: italic; color: var(--wheat); }
-.stud-home__hero p {
-  font-size: 14px;
-  color: #D7E2D8;
-  margin: 0;
-  max-width: 44ch;
-}
-
-/* Progress bar */
-.stud-progress {
-  margin-bottom: 32px;
-}
-.stud-progress__label {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  color: var(--ink-soft);
-  margin-bottom: 8px;
-}
-.stud-progress__track {
-  height: 8px;
-  background: #e0e4db;
-  border-radius: 99px;
-  overflow: hidden;
-}
-.stud-progress__fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--ok), var(--wheat));
-  border-radius: 99px;
-  transition: width 0.6s var(--ease-out);
-  width: 0%;
-}
-
-/* Subject cards grid */
-.stud-subjects {
-  margin-bottom: 32px;
-}
-.stud-subjects h2 {
-  font-family: var(--font-display);
-  font-size: 1.3rem;
-  color: var(--ink);
-  margin: 0 0 16px;
-}
-.stud-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 14px;
-}
-.stud-subj-card {
-  background: #fff;
-  border: 1.5px solid #e0e4db;
-  border-radius: var(--radius-md);
-  padding: 18px 16px;
-  cursor: pointer;
-  transition: border-color 0.18s, box-shadow 0.18s, transform 0.14s;
-  position: relative;
-  overflow: hidden;
-}
-.stud-subj-card:hover {
-  border-color: var(--ok);
-  box-shadow: 0 6px 20px rgba(44,110,73,0.1);
-  transform: translateY(-2px);
-}
-.stud-subj-card__icon { font-size: 28px; margin-bottom: 10px; display: block; }
-.stud-subj-card__name {
-  font-weight: 700;
-  font-size: 13.5px;
-  color: var(--ink);
-  margin: 0 0 4px;
-}
-.stud-subj-card__count {
-  font-size: 12px;
-  color: var(--ink-soft);
-  margin: 0;
-  font-family: var(--font-mono);
-}
-.stud-subj-card__bar {
-  height: 3px;
-  background: #e0e4db;
-  border-radius: 3px;
-  margin-top: 12px;
-  overflow: hidden;
-}
-.stud-subj-card__bar-fill {
-  height: 100%;
-  background: var(--ok);
-  border-radius: 3px;
-  width: 0%;
-  transition: width 0.5s var(--ease-out);
-}
-
-/* ── Article / topic view ─────────────────────────────────────────────── */
-.stud-article { display: none; }
-.stud-article.is-visible { display: block; }
-.stud-home.is-hidden { display: none; }
-
-.stud-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.prep-breadcrumb {
   font-size: 12.5px;
-  color: var(--ink-soft);
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  color: var(--hr-text-muted);
+  margin-bottom: 12px;
 }
-.stud-breadcrumb a {
-  color: var(--forest);
-  text-decoration: none;
-  font-weight: 600;
-  cursor: pointer;
-}
-.stud-breadcrumb a:hover { color: var(--wheat-dark); }
-.stud-breadcrumb__sep { color: #c0c8b8; }
 
-.stud-article__header {
+.prep-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 24px;
   padding-bottom: 20px;
-  border-bottom: 1px solid #e0e4db;
+  border-bottom: 1px solid #e2e8f0;
 }
-.stud-article__tag {
+
+.prep-title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 8px;
+}
+
+.prep-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.prep-btn-complete {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--hr-green-dark);
+  color: #fff;
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.prep-btn-complete:hover {
+  transform: translateY(-1px);
+}
+
+/* GFG Snippet Code/Formula Box */
+.gfg-code-box {
+  background: #0f172a;
+  color: #f8fafc;
+  border-radius: 10px;
+  padding: 20px;
+  margin: 24px 0;
   font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.07em;
+  font-size: 13px;
+  position: relative;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.gfg-code-box__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #334155;
+  color: #94a3b8;
+  font-size: 11.5px;
   text-transform: uppercase;
-  color: var(--ok);
-  background: var(--ok-bg);
+}
+
+.gfg-code-box__btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #cbd5e1;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.gfg-code-box__btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* W3Schools Note Callout Box */
+.w3-note-box {
+  background: #eff6ff;
+  border-left: 4px solid #3b82f6;
+  padding: 16px 20px;
+  border-radius: 0 8px 8px 0;
+  margin: 24px 0;
+  color: #1e3a8a;
+  font-size: 14px;
+}
+
+.w3-note-box strong {
+  color: #1e40af;
+}
+
+/* Knowledge Check Quiz Card inside Article */
+.article-quiz {
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 32px;
+}
+
+.article-quiz__option {
+  display: block;
+  padding: 10px 14px;
+  margin: 8px 0;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13.5px;
+  transition: all 0.15s ease;
+}
+
+.article-quiz__option:hover {
+  border-color: var(--hr-green-dark);
+  background: #f0fdf4;
+}
+
+.article-quiz__option.is-correct {
+  background: #dcfce7;
+  border-color: #22c55e;
+  color: #15803d;
+  font-weight: 600;
+}
+
+.article-quiz__option.is-wrong {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #b91c1c;
+}
+
+/* ── TAB 2 & 3: TESTS & QUIZZES ────────────────────────────────────────── */
+.hr-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.test-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid var(--hr-border);
+  padding: 24px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.test-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.test-card__badge {
+  display: inline-block;
   padding: 4px 10px;
   border-radius: 999px;
-  margin-bottom: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #e2e8f0;
+  color: #475569;
+  margin-bottom: 12px;
 }
-.stud-article__title {
-  font-family: var(--font-display);
-  font-size: clamp(1.4rem, 3vw, 2rem);
-  color: var(--ink);
+
+.test-card__title {
+  font-size: 1.15rem;
+  font-weight: 600;
   margin: 0 0 8px;
-  line-height: 1.2;
 }
-.stud-article__meta {
-  font-size: 12.5px;
-  color: var(--ink-soft);
+
+.test-card__meta {
   display: flex;
   gap: 16px;
-  flex-wrap: wrap;
-}
-
-.stud-article__body {
-  color: var(--ink);
-  line-height: 1.75;
-  font-size: 15px;
-}
-.stud-article__body h2 {
-  font-family: var(--font-display);
-  font-size: 1.3rem;
-  margin: 2em 0 0.6em;
-  color: var(--ink);
-  border-left: 4px solid var(--wheat);
-  padding-left: 12px;
-}
-.stud-article__body h3 {
-  font-size: 1rem;
-  font-weight: 700;
-  margin: 1.5em 0 0.5em;
-  color: var(--forest);
-}
-.stud-article__body p { margin: 0 0 1em; }
-.stud-article__body ul, .stud-article__body ol {
-  margin: 0 0 1em;
-  padding-left: 22px;
-}
-.stud-article__body li { margin-bottom: 5px; }
-
-/* Key points box */
-.stud-keybox {
-  background: var(--ok-bg);
-  border: 1.5px solid #CFE6D5;
-  border-radius: var(--radius-md);
-  padding: 16px 18px;
-  margin: 1.5em 0;
-}
-.stud-keybox__title {
-  font-size: 12px;
-  font-family: var(--font-mono);
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--ok);
-  margin: 0 0 10px;
-}
-.stud-keybox ul { margin: 0; padding-left: 18px; }
-.stud-keybox li { font-size: 13.5px; margin-bottom: 5px; }
-
-/* Did you know? box */
-.stud-didyouknow {
-  background: #FBF6E9;
-  border: 1.5px solid #F0D8A0;
-  border-radius: var(--radius-md);
-  padding: 16px 18px;
-  margin: 1.5em 0;
-  display: flex;
-  gap: 12px;
-}
-.stud-didyouknow__icon { font-size: 22px; flex-shrink: 0; }
-.stud-didyouknow__text { font-size: 13.5px; line-height: 1.6; color: var(--ink); }
-
-/* Topic list sidebar within article */
-.stud-topic-list {
-  background: #fff;
-  border: 1.5px solid #e0e4db;
-  border-radius: var(--radius-md);
-  padding: 14px 0;
-  margin-bottom: 24px;
-}
-.stud-topic-list__head {
-  font-size: 12px;
-  font-family: var(--font-mono);
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-  padding: 0 16px 10px;
-  border-bottom: 1px solid #e0e4db;
-  margin-bottom: 8px;
-}
-.stud-topic-list a {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
   font-size: 13px;
-  color: var(--ink);
-  text-decoration: none;
-  cursor: pointer;
-  border-left: 3px solid transparent;
-  transition: background 0.12s;
+  color: var(--hr-text-muted);
+  margin-bottom: 20px;
 }
-.stud-topic-list a:hover { background: #f8f9fa; }
-.stud-topic-list a.is-current {
-  border-left-color: var(--ok);
-  color: var(--ok);
+
+.btn-start-test {
+  width: 100%;
+  padding: 10px;
+  background: #0f172a;
+  color: #fff;
   font-weight: 600;
-  background: var(--ok-bg);
-}
-.stud-topic-check { color: var(--ok); font-size: 12px; margin-left: auto; }
-
-/* Next / prev navigation */
-.stud-nav-btns {
-  display: flex;
-  gap: 12px;
-  margin-top: 36px;
-  padding-top: 24px;
-  border-top: 1px solid #e0e4db;
-}
-.stud-nav-btn {
-  flex: 1;
-  padding: 12px 16px;
-  border-radius: var(--radius-sm);
-  border: 1.5px solid #e0e4db;
-  background: #fff;
-  cursor: pointer;
-  font-family: var(--font-body);
-  font-size: 13.5px;
-  color: var(--ink);
-  font-weight: 600;
-  transition: border-color 0.15s, background 0.15s;
-  text-align: left;
-}
-.stud-nav-btn:hover { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
-.stud-nav-btn--next { text-align: right; }
-.stud-nav-btn small { display: block; font-weight: 400; font-size: 11.5px; color: var(--ink-soft); margin-bottom: 2px; }
-
-/* Mark as read */
-.stud-mark-read {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 12px;
-  padding: 9px 18px;
-  border-radius: var(--radius-sm);
-  border: 1.5px solid var(--ok);
-  background: #fff;
-  color: var(--ok);
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.stud-mark-read:hover { background: var(--ok-bg); }
-.stud-mark-read.is-done { background: var(--ok); color: #fff; }
-
-/* Role badge */
-.role-badge {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-.role-badge--farmer { background: rgba(44,110,73,0.25); color: var(--wheat); }
-.role-badge--student { background: rgba(217,164,65,0.22); color: var(--wheat); }
-
-/* Role toggle on login */
-.role-toggle {
-  display: flex;
-  gap: 0;
-  border: 1.5px solid var(--line);
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  margin-bottom: 22px;
-}
-.role-toggle__btn {
-  flex: 1;
-  padding: 10px 12px;
+  border-radius: 8px;
   border: none;
-  background: none;
-  font-family: var(--font-body);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink-soft);
   cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-start-test:hover {
+  background: var(--hr-green-dark);
+}
+
+/* ── TAB 4: CERTIFICATIONS ────────────────────────────────────────────── */
+.cert-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1.5px solid #e2e8f0;
+  padding: 28px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.cert-card__icon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+}
+
+.cert-card__title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.cert-card__desc {
+  font-size: 13.5px;
+  color: var(--hr-text-muted);
+  margin-bottom: 20px;
+}
+
+/* Certificate Modal */
+.cert-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.7);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.cert-modal.is-open {
+  display: flex;
+}
+
+.cert-paper {
+  background: #fff8eb;
+  border: 12px double #b45309;
+  padding: 40px;
+  max-width: 650px;
+  width: 100%;
+  text-align: center;
+  border-radius: 8px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+
+.cert-paper h2 {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  color: #78350f;
+  margin: 0 0 12px;
+}
+
+.cert-paper .cert-name {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1e293b;
+  border-bottom: 2px solid #d97706;
+  display: inline-block;
+  padding-bottom: 4px;
+  margin: 16px 0;
+}
+
+/* ── TAB 5: LEADERBOARD ───────────────────────────────────────────────── */
+.lb-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--hr-border);
+}
+
+.lb-table th {
+  background: #f8fafc;
+  text-align: left;
+  padding: 14px 20px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--hr-text-muted);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--hr-border);
+}
+
+.lb-table td {
+  padding: 14px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 14px;
+}
+
+.lb-table tr.is-you {
+  background: #f0fdf4;
+  font-weight: 600;
+}
+
+.lb-rank {
+  font-weight: 700;
+  width: 50px;
+}
+
+.lb-rank-1 { color: #d97706; font-size: 1.1rem; }
+.lb-rank-2 { color: #64748b; font-size: 1.1rem; }
+.lb-rank-3 { color: #b45309; font-size: 1.1rem; }
+
+/* ── TAB 6: PROFILE & AVATAR SETTINGS ─────────────────────────────────── */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 28px;
+}
+
+@media (max-width: 860px) {
+  .profile-grid { grid-template-columns: 1fr; }
+}
+
+.profile-card {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid var(--hr-border);
+  padding: 28px;
+  text-align: center;
+}
+
+.profile-avatar-container {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  margin: 0 auto 16px;
+}
+
+.profile-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--hr-green-dark);
+}
+
+.profile-avatar-edit {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #0f172a;
+  color: #fff;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  transition: background 0.15s, color 0.15s;
+  cursor: pointer;
+  border: 2px solid #fff;
 }
-.role-toggle__btn + .role-toggle__btn { border-left: 1.5px solid var(--line); }
-.role-toggle__btn.is-active { background: var(--forest); color: #F4F1E6; }
-.role-toggle__btn:hover:not(.is-active) { background: var(--sage-bg); }
+
+.avatar-presets {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.avatar-preset-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.avatar-preset-btn.is-selected {
+  border-color: var(--hr-green-dark);
+}
+
+.avatar-preset-btn img { width: 100%; height: 100%; object-fit: cover; }
+
+.badge-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.badge-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+}
+
+.badge-item__icon { font-size: 2rem; margin-bottom: 6px; }
+.badge-item__name { font-size: 12px; font-weight: 600; color: #334155; }
 </style>
 </head>
+
 <body class="stud-body">
 
-<!-- ── Topbar ─────────────────────────────────────────────────────────── -->
-<header class="stud-topbar">
-  <button class="stud-sidebar-toggle" id="sidebar-toggle" aria-label="Toggle menu">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-  </button>
-  <a href="student-dashboard.html" class="stud-topbar__brand">
-    <svg viewBox="0 0 32 32" fill="none">
-      <circle cx="16" cy="16" r="15" stroke="#D9A441" stroke-width="1.4"/>
-      <path d="M16 23c0-6 3-10 7-12-1 6-3 10-7 12Z" fill="#D9A441"/>
-      <path d="M16 23c0-7-3.5-11-8-13 1 6.5 3.5 11 8 13Z" fill="#F4F1E6"/>
-    </svg>
-    AgriLearn
-  </a>
+  <!-- ── Topbar (HackerRank Style) ────────────────────────────────────── -->
+  <header class="hr-navbar">
+    <div class="hr-navbar__left">
+      <a href="student-dashboard.html" class="hr-navbar__brand">
+        <svg viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="15" stroke="#00ea64" stroke-width="2"/>
+          <path d="M16 23c0-6 3-10 7-12-1 6-3 10-7 12Z" fill="#00ea64"/>
+          <path d="M16 23c0-7-3.5-11-8-13 1 6.5 3.5 11 8 13Z" fill="#ffffff"/>
+        </svg>
+        <span>AgriLearn Student</span>
+      </a>
 
-  <div class="stud-search">
-    <span class="stud-search__icon">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    </span>
-    <input type="search" id="topic-search" placeholder="Search topics, subjects…" autocomplete="off" />
-  </div>
+      <button class="hr-menu-toggle" id="hr-menu-toggle" aria-label="Toggle navigation">☰</button>
 
-  <div class="stud-topbar__right">
-    <span class="role-badge role-badge--student">📚 Student</span>
-    <span class="stud-user" id="stud-user-label">Student</span>
-    <button class="btn-ghost-inverse" id="stud-logout">Sign out</button>
-  </div>
-</header>
-
-<!-- ── Layout ─────────────────────────────────────────────────────────── -->
-<div class="stud-layout">
-
-  <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
-  <nav class="stud-sidebar" id="stud-sidebar" aria-label="Subject navigation">
-
-    <div class="stud-sidebar__section" id="sb-agronomy">
-      <div class="stud-sidebar__heading" data-section="sb-agronomy">🌱 Agronomy <span class="stud-sidebar__arrow">▾</span></div>
-      <ul class="stud-sidebar__list">
-        <li class="stud-sidebar__item" data-topic="agronomy-intro">Introduction to Agronomy</li>
-        <li class="stud-sidebar__item" data-topic="crop-production">Crop Production Principles</li>
-        <li class="stud-sidebar__item" data-topic="tillage">Tillage & Soil Preparation</li>
-        <li class="stud-sidebar__item" data-topic="irrigation">Irrigation Methods</li>
-        <li class="stud-sidebar__item" data-topic="seed-rate">Seed Rate & Sowing Methods</li>
-        <li class="stud-sidebar__item" data-topic="cropping-systems">Cropping Systems</li>
+      <ul class="hr-nav__links" id="hr-nav-links">
+        <li class="hr-nav__link is-active" data-tab="prepare">📖 Prepare</li>
+        <li class="hr-nav__link" data-tab="tests">📝 Tests</li>
+        <li class="hr-nav__link" data-tab="quiz">⚡ Daily Quiz</li>
+        <li class="hr-nav__link" data-tab="certifications">📜 Certifications</li>
+        <li class="hr-nav__link" data-tab="leaderboard">🏆 Leaderboard</li>
+        <li class="hr-nav__link" data-tab="profile">👤 Profile</li>
       </ul>
     </div>
 
-    <div class="stud-sidebar__section" id="sb-soil">
-      <div class="stud-sidebar__heading" data-section="sb-soil">🪨 Soil Science <span class="stud-sidebar__arrow">▾</span></div>
-      <ul class="stud-sidebar__list">
-        <li class="stud-sidebar__item" data-topic="soil-formation">Soil Formation & Profile</li>
-        <li class="stud-sidebar__item" data-topic="soil-ph">Soil pH & Reaction</li>
-        <li class="stud-sidebar__item" data-topic="soil-fertility">Soil Fertility & Nutrients</li>
-        <li class="stud-sidebar__item" data-topic="organic-matter">Organic Matter & Humus</li>
-        <li class="stud-sidebar__item" data-topic="soil-texture">Soil Texture & Structure</li>
-      </ul>
-    </div>
-
-    <div class="stud-sidebar__section" id="sb-pathology">
-      <div class="stud-sidebar__heading" data-section="sb-pathology">🦠 Plant Pathology <span class="stud-sidebar__arrow">▾</span></div>
-      <ul class="stud-sidebar__list">
-        <li class="stud-sidebar__item" data-topic="disease-intro">Introduction to Plant Diseases</li>
-        <li class="stud-sidebar__item" data-topic="fungal-diseases">Fungal Diseases</li>
-        <li class="stud-sidebar__item" data-topic="bacterial-diseases">Bacterial Diseases</li>
-        <li class="stud-sidebar__item" data-topic="ipm">Integrated Pest Management</li>
-        <li class="stud-sidebar__item" data-topic="biocontrol">Biological Control</li>
-      </ul>
-    </div>
-
-    <div class="stud-sidebar__section" id="sb-horticulture">
-      <div class="stud-sidebar__heading" data-section="sb-horticulture">🍊 Horticulture <span class="stud-sidebar__arrow">▾</span></div>
-      <ul class="stud-sidebar__list">
-        <li class="stud-sidebar__item" data-topic="hort-intro">Introduction to Horticulture</li>
-        <li class="stud-sidebar__item" data-topic="fruit-crops">Fruit Crop Production</li>
-        <li class="stud-sidebar__item" data-topic="vegetable-crops">Vegetable Cultivation</li>
-        <li class="stud-sidebar__item" data-topic="post-harvest">Post-Harvest Management</li>
-      </ul>
-    </div>
-
-    <div class="stud-sidebar__section" id="sb-genetics">
-      <div class="stud-sidebar__heading" data-section="sb-genetics">🧬 Genetics & Breeding <span class="stud-sidebar__arrow">▾</span></div>
-      <ul class="stud-sidebar__list">
-        <li class="stud-sidebar__item" data-topic="mendelism">Mendelism & Heredity</li>
-        <li class="stud-sidebar__item" data-topic="hybridization">Hybridization Techniques</li>
-        <li class="stud-sidebar__item" data-topic="mutation">Mutation Breeding</li>
-        <li class="stud-sidebar__item" data-topic="gmo">GMO & Biotechnology</li>
-      </ul>
-    </div>
-
-    <div class="stud-sidebar__section" id="sb-economics">
-      <div class="stud-sidebar__heading" data-section="sb-economics">💰 Agricultural Economics <span class="stud-sidebar__arrow">▾</span></div>
-      <ul class="stud-sidebar__list">
-        <li class="stud-sidebar__item" data-topic="farm-management">Farm Management</li>
-        <li class="stud-sidebar__item" data-topic="market-linkage">Market Linkage & MSP</li>
-        <li class="stud-sidebar__item" data-topic="cooperatives">Agricultural Cooperatives</li>
-        <li class="stud-sidebar__item" data-topic="agri-credit">Agricultural Credit</li>
-      </ul>
-    </div>
-
-    <div class="stud-sidebar__section" id="sb-entomology">
-      <div class="stud-sidebar__heading" data-section="sb-entomology">🐛 Entomology <span class="stud-sidebar__arrow">▾</span></div>
-      <ul class="stud-sidebar__list">
-        <li class="stud-sidebar__item" data-topic="insect-pests">Major Insect Pests</li>
-        <li class="stud-sidebar__item" data-topic="life-cycles">Insect Life Cycles</li>
-        <li class="stud-sidebar__item" data-topic="pesticide-groups">Pesticide Classification</li>
-      </ul>
-    </div>
-
-  </nav>
-
-  <!-- ── Main ──────────────────────────────────────────────────────────── -->
-  <main class="stud-main">
-
-    <!-- Home / Browse view -->
-    <div class="stud-home" id="stud-home">
-      <div class="stud-home__hero">
-        <p class="stud-home__hero-eyebrow">BSc Agriculture Learning Portal</p>
-        <h1>Learn Agriculture,<br/><em>topic by topic.</em></h1>
-        <p>Structured notes and resources for every subject in your BSc Agriculture curriculum — organised like a reference guide, not a textbook.</p>
+    <div class="hr-navbar__right">
+      <div class="hr-stat-pill hr-stat-pill--xp" title="Your Earned XP Points">
+        ⚡ <span id="user-xp-display">450</span> XP
       </div>
-
-      <div class="stud-progress" id="stud-progress-section">
-        <div class="stud-progress__label">
-          <span>Your progress</span>
-          <span id="progress-pct">0 topics read</span>
-        </div>
-        <div class="stud-progress__track">
-          <div class="stud-progress__fill" id="progress-fill"></div>
-        </div>
+      <div class="hr-stat-pill hr-stat-pill--streak" title="Daily Login Streak">
+        🔥 <span id="user-streak-display">3</span> Days
       </div>
+      <img src="https://api.dicebear.com/7.x/bottts/svg?seed=AgriStudent" id="nav-user-avatar" class="hr-user-avatar" alt="User Avatar" title="View Profile" data-tab-trigger="profile" />
+    </div>
+  </header>
 
-      <div class="stud-subjects">
-        <h2>All Subjects</h2>
-        <div class="stud-grid" id="stud-grid">
-          <div class="stud-subj-card" data-subject="agronomy"><span class="stud-subj-card__icon">🌱</span><p class="stud-subj-card__name">Agronomy</p><p class="stud-subj-card__count">6 topics</p><div class="stud-subj-card__bar"><div class="stud-subj-card__bar-fill" id="bar-agronomy"></div></div></div>
-          <div class="stud-subj-card" data-subject="soil"><span class="stud-subj-card__icon">🪨</span><p class="stud-subj-card__name">Soil Science</p><p class="stud-subj-card__count">5 topics</p><div class="stud-subj-card__bar"><div class="stud-subj-card__bar-fill" id="bar-soil"></div></div></div>
-          <div class="stud-subj-card" data-subject="pathology"><span class="stud-subj-card__icon">🦠</span><p class="stud-subj-card__name">Plant Pathology</p><p class="stud-subj-card__count">5 topics</p><div class="stud-subj-card__bar"><div class="stud-subj-card__bar-fill" id="bar-pathology"></div></div></div>
-          <div class="stud-subj-card" data-subject="horticulture"><span class="stud-subj-card__icon">🍊</span><p class="stud-subj-card__name">Horticulture</p><p class="stud-subj-card__count">4 topics</p><div class="stud-subj-card__bar"><div class="stud-subj-card__bar-fill" id="bar-horticulture"></div></div></div>
-          <div class="stud-subj-card" data-subject="genetics"><span class="stud-subj-card__icon">🧬</span><p class="stud-subj-card__name">Genetics & Breeding</p><p class="stud-subj-card__count">4 topics</p><div class="stud-subj-card__bar"><div class="stud-subj-card__bar-fill" id="bar-genetics"></div></div></div>
-          <div class="stud-subj-card" data-subject="economics"><span class="stud-subj-card__icon">💰</span><p class="stud-subj-card__name">Agri Economics</p><p class="stud-subj-card__count">4 topics</p><div class="stud-subj-card__bar"><div class="stud-subj-card__bar-fill" id="bar-economics"></div></div></div>
-          <div class="stud-subj-card" data-subject="entomology"><span class="stud-subj-card__icon">🐛</span><p class="stud-subj-card__name">Entomology</p><p class="stud-subj-card__count">3 topics</p><div class="stud-subj-card__bar"><div class="stud-subj-card__bar-fill" id="bar-entomology"></div></div></div>
-        </div>
-      </div>
-    </div><!-- /stud-home -->
+  <!-- ── Main Content Container ──────────────────────────────────────── -->
+  <main class="hr-container">
 
-    <!-- Article view (shown when a topic is selected) -->
-    <div class="stud-article" id="stud-article">
-      <nav class="stud-breadcrumb" id="stud-breadcrumb">
-        <a id="bc-home">Home</a>
-        <span class="stud-breadcrumb__sep">›</span>
-        <span id="bc-subject"></span>
-        <span class="stud-breadcrumb__sep">›</span>
-        <span id="bc-topic"></span>
-      </nav>
-
-      <div class="stud-topic-list" id="stud-topic-list"></div>
-
-      <article>
-        <header class="stud-article__header">
-          <span class="stud-article__tag" id="art-tag">Agronomy</span>
-          <h1 class="stud-article__title" id="art-title">Topic Title</h1>
-          <div class="stud-article__meta">
-            <span id="art-read-time">📖 5 min read</span>
-            <span id="art-level">🎓 BSc Agriculture</span>
+    <!-- ── TAB 1: PREPARE (25 SUBJECTS GFG & W3SCHOOLS FORMAT) ────────── -->
+    <div class="hr-tab-pane is-active" id="tab-prepare">
+      <div class="prep-layout">
+        <!-- Sidebar Navigation (25 Subjects) -->
+        <aside class="prep-sidebar">
+          <div class="prep-search">
+            <input type="text" id="prep-search-input" placeholder="Search 25 subjects & topics..." />
           </div>
-        </header>
 
-        <div class="stud-article__body" id="art-body"></div>
+          <div class="prep-group">
+            <div class="prep-group__title">🌾 Crop & Plant Sciences</div>
+            <ul class="prep-subject-list" id="group-crop-sciences"></ul>
+          </div>
 
-        <button class="stud-mark-read" id="mark-read-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Mark as read
-        </button>
+          <div class="prep-group">
+            <div class="prep-group__title">🧪 Soil & Bio Sciences</div>
+            <ul class="prep-subject-list" id="group-soil-sciences"></ul>
+          </div>
 
-        <div class="stud-nav-btns">
-          <button class="stud-nav-btn" id="prev-btn" hidden>
-            <small>← Previous</small>
-            <span id="prev-label"></span>
-          </button>
-          <button class="stud-nav-btn stud-nav-btn--next" id="next-btn" hidden>
-            <small>Next →</small>
-            <span id="next-label"></span>
-          </button>
+          <div class="prep-group">
+            <div class="prep-group__title">⚙️ Engineering & Livestock</div>
+            <ul class="prep-subject-list" id="group-engineering"></ul>
+          </div>
+
+          <div class="prep-group">
+            <div class="prep-group__title">📊 Economics, Stats & RAWE</div>
+            <ul class="prep-subject-list" id="group-economics"></ul>
+          </div>
+        </aside>
+
+        <!-- Article Main Reader -->
+        <article class="prep-content" id="prep-article-container">
+          <!-- Dynamically Rendered by JS -->
+        </article>
+      </div>
+    </div>
+
+    <!-- ── TAB 2: TESTS ────────────────────────────────────────────────── -->
+    <div class="hr-tab-pane" id="tab-tests">
+      <h2 style="margin: 0 0 8px; font-family: var(--font-display);">Practice Tests & Mock Exams</h2>
+      <p style="color: var(--hr-text-muted); margin-bottom: 24px;">Test your knowledge across B.Sc. Agriculture core subjects and ICAR JRF preparation.</p>
+      
+      <div class="hr-grid-2" id="tests-grid-container"></div>
+    </div>
+
+    <!-- ── TAB 3: DAILY QUIZ ───────────────────────────────────────────── -->
+    <div class="hr-tab-pane" id="tab-quiz">
+      <div style="max-width: 680px; margin: 0 auto; background: #fff; border-radius: 14px; border: 1px solid var(--hr-border); padding: 32px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div>
+            <span style="font-size: 12px; font-weight: 700; color: var(--hr-green-dark); text-transform: uppercase;">Daily Agriculture Challenge</span>
+            <h2 style="margin: 4px 0 0;">Quick Knowledge Booster</h2>
+          </div>
+          <div style="background: #fef3c7; color: #b45309; padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 13px;">
+            +50 XP Reward
+          </div>
         </div>
-      </article>
-    </div><!-- /stud-article -->
+
+        <div id="daily-quiz-card">
+          <!-- Dynamically populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB 4: CERTIFICATIONS ───────────────────────────────────────── -->
+    <div class="hr-tab-pane" id="tab-certifications">
+      <h2 style="margin: 0 0 8px; font-family: var(--font-display);">AgriLearn Skill Certifications</h2>
+      <p style="color: var(--hr-text-muted); margin-bottom: 28px;">Pass the 80%+ evaluation to earn verifiable downloadable certificates for your resume.</p>
+
+      <div class="hr-grid-2" id="cert-grid-container"></div>
+    </div>
+
+    <!-- ── TAB 5: LEADERBOARD ──────────────────────────────────────────── -->
+    <div class="hr-tab-pane" id="tab-leaderboard">
+      <h2 style="margin: 0 0 8px; font-family: var(--font-display);">Global Student Leaderboard</h2>
+      <p style="color: var(--hr-text-muted); margin-bottom: 24px;">Compete with B.Sc. Agriculture students nationwide by completing subjects and solving quizzes.</p>
+
+      <table class="lb-table">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Student</th>
+            <th>Subjects Cleared</th>
+            <th>Badges</th>
+            <th>XP Points</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- ── TAB 6: PROFILE & AVATAR SETTINGS ────────────────────────────── -->
+    <div class="hr-tab-pane" id="tab-profile">
+      <div class="profile-grid">
+        <aside class="profile-card">
+          <div class="profile-avatar-container">
+            <img src="https://api.dicebear.com/7.x/bottts/svg?seed=AgriiStudent" id="profile-main-avatar" class="profile-avatar-img" alt="Avatar" />
+            <label class="profile-avatar-edit" title="Upload Custom Photo">
+              📷
+              <input type="file" id="avatar-file-input" accept="image/*" style="display: none;" />
+            </label>
+          </div>
+
+          <h3 style="margin: 0 0 4px;" id="profile-display-name">Mahammad Ashiq</h3>
+          <p style="font-size: 13px; color: var(--hr-text-muted); margin: 0 0 16px;" id="profile-display-email">student@agrilearn.edu</p>
+
+          <div style="font-size: 13px; color: #475569; margin-bottom: 20px; line-height: 1.6; text-align: left; background: #f8fafc; padding: 12px; border-radius: 8px;">
+            <div>🎓 <strong>Degree:</strong> B.Sc. (Hons.) Agriculture</div>
+            <div>📍 <strong>University:</strong> Agri Science University</div>
+            <div>⚡ <strong>Total XP:</strong> <span id="profile-xp-val">450</span></div>
+          </div>
+
+          <h4 style="margin: 0 0 10px; font-size: 13px; text-align: left; color: var(--hr-text-muted); text-transform: uppercase;">Choose Bot Avatar Preset</h4>
+          <div class="avatar-presets" id="avatar-presets-container"></div>
+        </aside>
+
+        <section style="background: #fff; border-radius: 14px; border: 1px solid var(--hr-border); padding: 28px;">
+          <h3 style="margin: 0 0 16px;">🏆 Earned Badges & Achievements</h3>
+          <div class="badge-gallery" id="badge-gallery-container"></div>
+
+          <h3 style="margin: 32px 0 16px;">⚙️ Profile & Study Preferences</h3>
+          <form id="profile-settings-form">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+              <div>
+                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Full Name</label>
+                <input type="text" id="setting-name" value="Mahammad Ashiq" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box;" />
+              </div>
+              <div>
+                <label style="font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px;">Year of Study</label>
+                <select id="setting-year" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box;">
+                  <option value="1">1st Year (Semester 1 & 2)</option>
+                  <option value="2">2nd Year (Semester 3 & 4)</option>
+                  <option value="3" selected>3rd Year (Semester 5 & 6)</option>
+                  <option value="4">4th Year (RAWE & Experiential Learning)</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" style="background: var(--hr-green-dark); color: #fff; border: none; padding: 10px 20px; font-weight: 600; border-radius: 8px; cursor: pointer;">Save Settings</button>
+          </form>
+        </section>
+      </div>
+    </div>
 
   </main>
 
-</div><!-- /stud-layout -->
+  <!-- ── Certificate Modal ─────────────────────────────────────────────── -->
+  <div class="cert-modal" id="cert-modal">
+    <div class="cert-paper">
+      <div style="font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em; color: #b45309;">OFFICIAL CERTIFICATE OF ACHIEVEMENT</div>
+      <h2>AgriLearn Academy</h2>
+      <p style="font-size: 14px; color: #451a03;">This certificate is proudly awarded to</p>
 
-<script>
-(function () {
-  'use strict';
+      <div class="cert-name" id="cert-recipient-name">Mahammad Ashiq</div>
 
-  /* ── Auth Guard ───────────────────────────────────────────────────── */
-  const role    = localStorage.getItem('agrilearn_role');
-  const token   = localStorage.getItem('agrilearn_token');
-  const session = sessionStorage.getItem('agrilearn_demo_session');
+      <p style="font-size: 14.5px; color: #78350f; max-width: 460px; margin: 12px auto;">
+        for successfully completing the rigorous evaluation in <br /><strong id="cert-course-title" style="color: #451a03;">Certified Crop Advisor (Level 1)</strong><br /> with an outstanding score of <strong id="cert-score-display">90%</strong>.
+      </p>
 
-  if (role === 'farmer') { window.location.href = 'dashboard.html'; return; }
-  if (!token && !session) { window.location.href = 'login.html'; return; }
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 36px; padding-top: 20px; border-top: 1px dashed #d97706; font-size: 12px; color: #92400e;">
+        <div>Date: <strong id="cert-issue-date">September 3, 2026</strong></div>
+        <div style="text-align: right;">Verified ID: <strong id="cert-verify-id">AGRI-2026-8942</strong></div>
+      </div>
 
-  // Populate user label
-  const email = localStorage.getItem('agrilearn_email') || '';
-  if (email) document.getElementById('stud-user-label').textContent = email;
+      <button id="btn-close-cert" style="margin-top: 24px; background: #78350f; color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer;">Close & Print</button>
+    </div>
+  </div>
 
-  document.getElementById('stud-logout').addEventListener('click', function () {
-    sessionStorage.removeItem('agrilearn_demo_session');
-    localStorage.removeItem('agrilearn_token');
-    localStorage.removeItem('agrilearn_role');
-    localStorage.removeItem('agrilearn_email');
-    window.location.href = 'login.html';
-  });
+  <!-- ── Application Logic ─────────────────────────────────────────────── -->
+  <script>
+    (function () {
+      "use strict";
 
-  /* ── Content database ─────────────────────────────────────────────── */
-  const TOPICS = {
-    'agronomy-intro': {
-      subject: 'Agronomy', subjectId: 'agronomy', icon: '🌱',
-      title: 'Introduction to Agronomy',
-      readTime: '6 min read',
-      body: `
-        <p>Agronomy is the science of soil management and crop production. It integrates knowledge from plant biology, soil science, ecology, and genetics to optimise agricultural systems for food production.</p>
-        <div class="stud-keybox"><p class="stud-keybox__title">🔑 Key Points</p><ul>
-          <li>Agronomy = soil + crop management + environment</li>
-          <li>Aims to maximise yield with minimal environmental impact</li>
-          <li>Covers Kharif, Rabi, and Zaid crop seasons in India</li>
-          <li>Father of Agronomy: Pietro de'Crescenzi (14th century)</li>
-        </ul></div>
-        <h2>Branches of Agronomy</h2>
-        <p>Agronomy is broadly divided into:</p>
-        <ul>
-          <li><strong>Crop Physiology</strong> — Understanding plant growth processes</li>
-          <li><strong>Soil Science</strong> — Soil properties and management</li>
-          <li><strong>Crop Ecology</strong> — Interaction of crops with environment</li>
-          <li><strong>Crop Improvement</strong> — Developing better crop varieties</li>
-        </ul>
-        <h2>Importance in Indian Agriculture</h2>
-        <p>India is an agrarian economy with more than 58% of rural households depending on agriculture. Agronomy helps in addressing key challenges such as food security, sustainable production, and climate adaptation.</p>
-        <div class="stud-didyouknow"><span class="stud-didyouknow__icon">💡</span><p class="stud-didyouknow__text"><strong>Did you know?</strong> India has the largest net cropped area in the world — approximately 140 million hectares — second only in gross cropped area to China.</p></div>
-        <h2>Cropping Seasons in India</h2>
-        <h3>Kharif (Monsoon crops — June to October)</h3>
-        <p>Major crops: Rice, Maize, Sorghum, Pearl Millet, Cotton, Groundnut, Soybean.</p>
-        <h3>Rabi (Winter crops — October to March)</h3>
-        <p>Major crops: Wheat, Barley, Mustard, Chickpea, Lentil, Linseed.</p>
-        <h3>Zaid (Summer crops — March to June)</h3>
-        <p>Major crops: Cucumber, Watermelon, Muskmelon, Moong, Urd Bean.</p>
-      `
-    },
-    'crop-production': {
-      subject: 'Agronomy', subjectId: 'agronomy', icon: '🌱',
-      title: 'Crop Production Principles',
-      readTime: '8 min read',
-      body: `
-        <p>Crop production involves a series of planned, systematic operations aimed at maximising crop yield in a sustainable and economically viable manner. Understanding the principles allows farmers and agronomists to make better decisions at every stage of crop growth.</p>
-        <div class="stud-keybox"><p class="stud-keybox__title">🔑 Key Points</p><ul>
-          <li>Yield = Genetic potential × Environment × Management</li>
-          <li>Five growth stages: germination, seedling, vegetative, reproductive, maturation</li>
-          <li>LAI (Leaf Area Index) is a critical yield predictor</li>
-          <li>Nutrient management follows the 4R principle: Right Source, Right Rate, Right Time, Right Place</li>
-        </ul></div>
-        <h2>Factors Affecting Crop Production</h2>
-        <h3>1. Climatic Factors</h3>
-        <ul><li>Temperature — influences germination and enzyme activity</li><li>Rainfall and humidity</li><li>Sunlight (photoperiodism)</li><li>Wind speed and direction</li></ul>
-        <h3>2. Edaphic Factors (Soil)</h3>
-        <ul><li>Soil texture and structure</li><li>Soil pH (ideal 6–7 for most crops)</li><li>Soil organic matter and nutrient content</li><li>Drainage and aeration</li></ul>
-        <h3>3. Biological Factors</h3>
-        <ul><li>Weed competition</li><li>Pest and disease pressure</li><li>Beneficial soil microorganisms</li></ul>
-        <h2>Crop Growth Stages</h2>
-        <p>Understanding crop phenology is essential for timing inputs correctly:</p>
-        <ol><li><strong>Germination</strong> — seed absorbs water, radicle emerges</li><li><strong>Seedling stage</strong> — first true leaves appear, heterotrophic → autotrophic</li><li><strong>Vegetative stage</strong> — rapid leaf and stem growth, high N demand</li><li><strong>Reproductive stage</strong> — flowering, pollination, grain/fruit formation</li><li><strong>Maturation</strong> — grain filling, moisture loss, harvest readiness</li></ol>
-        <div class="stud-didyouknow"><span class="stud-didyouknow__icon">💡</span><p class="stud-didyouknow__text"><strong>Did you know?</strong> The Green Revolution (1960s) in India, led by Dr. M.S. Swaminathan with Norman Borlaug's HYV wheat, increased wheat production from 12 MT (1964) to 17 MT (1968) in just four years.</p></div>
-      `
-    },
-    'soil-formation': {
-      subject: 'Soil Science', subjectId: 'soil', icon: '🪨',
-      title: 'Soil Formation & Profile',
-      readTime: '7 min read',
-      body: `
-        <p>Soil is a complex mixture of minerals, organic matter, water, and air that forms the foundation for terrestrial plant life. Understanding how soil forms and its profile structure is essential for managing soil health.</p>
-        <div class="stud-keybox"><p class="stud-keybox__title">🔑 Key Points</p><ul>
-          <li>Soil formation (pedogenesis) takes thousands of years</li>
-          <li>5 soil-forming factors: Parent material, Climate, Organisms, Relief, Time (CLORPT)</li>
-          <li>A soil profile has distinct layers called horizons: O, A, B, C, R</li>
-          <li>Regolith = weathered parent material; humus = decomposed organic matter</li>
-        </ul></div>
-        <h2>Soil-Forming Factors (CLORPT)</h2>
-        <h3>1. Climate</h3>
-        <p>Temperature and precipitation are the most dominant factors. Warm, humid conditions accelerate weathering and leaching, producing deep, highly weathered soils (e.g., laterites).</p>
-        <h3>2. Living Organisms</h3>
-        <p>Plants, animals, bacteria, and fungi all contribute organic matter and influence soil structure. Earthworms mix horizons and improve aeration.</p>
-        <h3>3. Relief (Topography)</h3>
-        <p>Slope affects water drainage and erosion. Valley soils receive transported material (colluvium), while hilltop soils are often thin and shallow.</p>
-        <h3>4. Parent Material</h3>
-        <p>The mineral composition of bedrock influences soil texture, pH, and nutrient status. Basalt-derived soils are black and fertile; granite soils are sandy and less fertile.</p>
-        <h3>5. Time</h3>
-        <p>Soil development is a very slow process. Young soils have weakly developed profiles; old soils have well-differentiated horizons.</p>
-        <h2>Soil Profile Horizons</h2>
-        <ul>
-          <li><strong>O horizon</strong> — Organic layer (leaf litter, compost)</li>
-          <li><strong>A horizon</strong> — Topsoil; rich in humus and biological activity (most important for crops)</li>
-          <li><strong>B horizon</strong> — Subsoil; accumulation of clay and minerals leached from A</li>
-          <li><strong>C horizon</strong> — Partially weathered parent material</li>
-          <li><strong>R horizon</strong> — Bedrock</li>
-        </ul>
-        <div class="stud-didyouknow"><span class="stud-didyouknow__icon">💡</span><p class="stud-didyouknow__text"><strong>Did you know?</strong> It takes approximately 500–1,000 years to form just 1 inch (2.5 cm) of topsoil naturally. That's why soil conservation is so critical!</p></div>
-      `
-    },
-    'fungal-diseases': {
-      subject: 'Plant Pathology', subjectId: 'pathology', icon: '🦠',
-      title: 'Fungal Diseases of Crops',
-      readTime: '9 min read',
-      body: `
-        <p>Fungi are responsible for approximately 70–80% of all plant diseases. They reproduce through spores and spread via wind, water, insects, and soil. Fungal diseases cause severe economic losses in crops worldwide.</p>
-        <div class="stud-keybox"><p class="stud-keybox__title">🔑 Key Points</p><ul>
-          <li>Major fungal diseases: Blast, Rust, Smut, Blight, Wilt, Powdery mildew</li>
-          <li>Koch's postulates must be satisfied to confirm a pathogen</li>
-          <li>Disease triangle: Host + Pathogen + Environment</li>
-          <li>Control: Cultural, chemical (fungicides), biological methods</li>
-        </ul></div>
-        <h2>Important Fungal Diseases</h2>
-        <h3>1. Rice Blast (Magnaporthe oryzae)</h3>
-        <p>Most destructive disease of rice. Symptoms: diamond-shaped lesions with grey centres and brown borders on leaves. Can attack neck (neck rot) causing yield loss of 50–90%.</p>
-        <p><strong>Control:</strong> Resistant varieties, Tricyclazole (fungicide), balanced N application.</p>
-        <h3>2. Wheat Rust (Puccinia spp.)</h3>
-        <p>Three types: Stem rust (P. graminis), Yellow/Stripe rust (P. striiformis), Leaf rust (P. triticina). Orange-yellow pustules appear on leaves and stems.</p>
-        <p><strong>Control:</strong> Resistant varieties (Sharbati Sonora), Propiconazole spray.</p>
-        <h3>3. Late Blight of Potato (Phytophthora infestans)</h3>
-        <p>The oomycete pathogen that caused the Great Irish Famine (1845). Water-soaked lesions on leaves that turn brown. Spreads rapidly in cool, wet weather.</p>
-        <h3>4. Powdery Mildew (Erysiphe spp.)</h3>
-        <p>White powdery patches on leaf surfaces. Favoured by moderate temperature and low humidity (unlike most other fungal diseases). Affects wheat, grapes, cucurbits.</p>
-        <h2>Disease Management</h2>
-        <ul>
-          <li><strong>Cultural control:</strong> Crop rotation, resistant varieties, field sanitation</li>
-          <li><strong>Chemical control:</strong> Fungicides — Mancozeb, Carbendazim, Propiconazole</li>
-          <li><strong>Biological control:</strong> Trichoderma viride, Bacillus subtilis</li>
-        </ul>
-        <div class="stud-didyouknow"><span class="stud-didyouknow__icon">💡</span><p class="stud-didyouknow__text"><strong>Did you know?</strong> The Great Irish Famine caused by Late Blight (Phytophthora infestans) led to the death of over 1 million people and emigration of another million, reducing Ireland's population by 25%.</p></div>
-      `
-    },
-    'mendelism': {
-      subject: 'Genetics & Breeding', subjectId: 'genetics', icon: '🧬',
-      title: 'Mendelism & Heredity',
-      readTime: '8 min read',
-      body: `
-        <p>Gregor Johann Mendel (1822–1884), an Augustinian friar, laid the foundation for modern genetics through his experiments with garden peas (Pisum sativum) between 1856–1863.</p>
-        <div class="stud-keybox"><p class="stud-keybox__title">🔑 Key Points</p><ul>
-          <li>Mendel's two laws: Law of Segregation & Law of Independent Assortment</li>
-          <li>Monohybrid cross ratio: 3:1 (phenotypic) | 1:2:1 (genotypic)</li>
-          <li>Dihybrid cross ratio: 9:3:3:1</li>
-          <li>Mendel worked with 7 contrasting characters in pea</li>
-        </ul></div>
-        <h2>Mendel's Experimental Material</h2>
-        <p>Mendel chose garden peas (Pisum sativum) because they have: clearly contrasting characters, short life span, easy cross-pollination, and large number of offspring.</p>
-        <h3>7 Characters Studied</h3>
-        <ol>
-          <li>Seed shape — Round vs Wrinkled</li>
-          <li>Seed colour — Yellow vs Green</li>
-          <li>Pod shape — Inflated vs Constricted</li>
-          <li>Pod colour — Green vs Yellow</li>
-          <li>Flower colour — Purple vs White</li>
-          <li>Flower position — Axial vs Terminal</li>
-          <li>Plant height — Tall vs Dwarf</li>
-        </ol>
-        <h2>Law of Segregation (First Law)</h2>
-        <p>Each individual possesses two alleles for each trait. During gamete formation, these alleles separate (segregate) so that each gamete carries only one allele. The two alleles come together again at fertilisation.</p>
-        <p><em>Example:</em> Tt × Tt → TT : Tt : tt = 1:2:1 (genotypic) → Tall:Dwarf = 3:1 (phenotypic)</p>
-        <h2>Law of Independent Assortment (Second Law)</h2>
-        <p>Alleles of different genes assort independently of each other during gamete formation. This holds true for genes located on different chromosomes.</p>
-        <p><em>Example:</em> RrYy × RrYy → 9 Round Yellow : 3 Round Green : 3 Wrinkled Yellow : 1 Wrinkled Green</p>
-        <div class="stud-didyouknow"><span class="stud-didyouknow__icon">💡</span><p class="stud-didyouknow__text"><strong>Did you know?</strong> Mendel's work was published in 1866 but was ignored for 35 years. It was rediscovered in 1900 independently by Hugo de Vries, Carl Correns, and Erich von Tschermak — all of whom also confirmed his results.</p></div>
-      `
-    },
-    'farm-management': {
-      subject: 'Agricultural Economics', subjectId: 'economics', icon: '💰',
-      title: 'Farm Management',
-      readTime: '7 min read',
-      body: `
-        <p>Farm management is the process of making and implementing decisions to organise and operate a farm for maximum continuous profit. It applies economic and business principles to farming operations.</p>
-        <div class="stud-keybox"><p class="stud-keybox__title">🔑 Key Points</p><ul>
-          <li>Farm management = Decision-making science for farm operations</li>
-          <li>Four factors of production: Land, Labour, Capital, Management</li>
-          <li>Types of farm costs: Fixed costs & Variable costs</li>
-          <li>Break-even analysis determines minimum production for profit</li>
-        </ul></div>
-        <h2>Principles of Farm Management</h2>
-        <h3>1. Principle of Variable Proportions (Law of Diminishing Returns)</h3>
-        <p>As successive units of a variable input are added to a fixed input, after a point the marginal product decreases. Applies to fertiliser application — beyond optimal dose, yield increment falls.</p>
-        <h3>2. Principle of Factor Substitution</h3>
-        <p>One input may be substituted for another to maintain the same level of output. Example: machinery can substitute for labour.</p>
-        <h3>3. Principle of Comparative Advantage</h3>
-        <p>A region or farm should specialise in producing crops for which it has the greatest comparative advantage (least opportunity cost).</p>
-        <h2>Farm Costs</h2>
-        <ul>
-          <li><strong>Fixed Costs (FC):</strong> Depreciation, land revenue, interest on fixed capital — do not change with output level</li>
-          <li><strong>Variable Costs (VC):</strong> Seeds, fertiliser, labour, irrigation — change with output level</li>
-          <li><strong>Total Cost (TC) = FC + VC</strong></li>
-        </ul>
-        <h2>Types of Farming</h2>
-        <ul>
-          <li><strong>Subsistence farming</strong> — Production mainly for self-consumption</li>
-          <li><strong>Commercial farming</strong> — Production for sale in the market</li>
-          <li><strong>Mixed farming</strong> — Crop production + livestock rearing together</li>
-          <li><strong>Intensive farming</strong> — High input, high yield per unit area</li>
-        </ul>
-        <div class="stud-didyouknow"><span class="stud-didyouknow__icon">💡</span><p class="stud-didyouknow__text"><strong>Did you know?</strong> India has 138 million farm holdings. Of these, about 86% are small and marginal (less than 2 hectares), yet they produce a large share of India's food output.</p></div>
-      `
-    },
-    'ipm': {
-      subject: 'Plant Pathology', subjectId: 'pathology', icon: '🦠',
-      title: 'Integrated Pest Management',
-      readTime: '8 min read',
-      body: `
-        <p>Integrated Pest Management (IPM) is an ecosystem-based strategy that focuses on long-term prevention of pests and their damage through a combination of techniques such as biological control, habitat manipulation, cultural practices, and use of resistant varieties.</p>
-        <div class="stud-keybox"><p class="stud-keybox__title">🔑 Key Points</p><ul>
-          <li>IPM was introduced by FAO in the 1960s to reduce pesticide dependence</li>
-          <li>Four pillars: Cultural, Biological, Chemical, Regulatory control</li>
-          <li>Economic Threshold Level (ETL) guides spray decisions</li>
-          <li>Goal: Reduce pest populations below Economic Injury Level (EIL)</li>
-        </ul></div>
-        <h2>Components of IPM</h2>
-        <h3>1. Cultural Control</h3>
-        <p>Manipulation of the crop environment to reduce pest incidence:</p>
-        <ul><li>Crop rotation — breaks pest cycles</li><li>Resistant varieties</li><li>Sanitation — destroy crop residues</li><li>Proper spacing and timing of sowing</li></ul>
-        <h3>2. Biological Control</h3>
-        <p>Using natural enemies to suppress pest populations:</p>
-        <ul><li><strong>Predators:</strong> Ladybird beetles, spiders, lacewings</li><li><strong>Parasitoids:</strong> Trichogramma wasps for egg parasitism</li><li><strong>Pathogens:</strong> Bacillus thuringiensis (Bt), NPV (Nuclear Polyhedrosis Virus)</li></ul>
-        <h3>3. Chemical Control</h3>
-        <p>Used only when pest population exceeds Economic Threshold Level (ETL). Choose selective, low-residue pesticides. Follow label instructions and safety precautions.</p>
-        <h3>4. Regulatory Control</h3>
-        <p>Quarantine measures to prevent entry of exotic pests. Plant Protection Act, 1914 governs this in India.</p>
-        <h2>Key Terms</h2>
-        <ul>
-          <li><strong>Economic Injury Level (EIL):</strong> Lowest pest density causing economic damage</li>
-          <li><strong>Economic Threshold Level (ETL):</strong> Pest density at which management action should begin (= 75% of EIL)</li>
-          <li><strong>General Equilibrium Position (GEP):</strong> Average pest population in the absence of disturbing influences</li>
-        </ul>
-        <div class="stud-didyouknow"><span class="stud-didyouknow__icon">💡</span><p class="stud-didyouknow__text"><strong>Did you know?</strong> Rachel Carson's 1962 book "Silent Spring" exposed the devastating effects of DDT on wildlife and triggered the modern environmental movement, ultimately leading to IPM adoption worldwide.</p></div>
-      `
-    },
-    'hort-intro': {
-      subject: 'Horticulture', subjectId: 'horticulture', icon: '🍊',
-      title: 'Introduction to Horticulture',
-      readTime: '6 min read',
-      body: `
-        <p>Horticulture (Latin: hortus = garden + cultura = cultivation) is the branch of agriculture that deals with cultivation of fruits, vegetables, flowers, ornamental plants, and plantation crops.</p>
-        <div class="stud-keybox"><p class="stud-keybox__title">🔑 Key Points</p><ul>
-          <li>Horticulture = garden cultivation science</li>
-          <li>Branches: Pomology, Olericulture, Floriculture, Landscaping, Arboriculture</li>
-          <li>India is 2nd largest producer of fruits & vegetables in the world</li>
-          <li>NHB (National Horticulture Board) promotes horticulture development in India</li>
-        </ul></div>
-        <h2>Branches of Horticulture</h2>
-        <ul>
-          <li><strong>Pomology</strong> — Science of fruit production (mango, banana, citrus, grapes)</li>
-          <li><strong>Olericulture</strong> — Science of vegetable production (tomato, potato, onion)</li>
-          <li><strong>Floriculture</strong> — Science of flower production (rose, marigold, chrysanthemum)</li>
-          <li><strong>Landscape Gardening</strong> — Designing aesthetic outdoor spaces</li>
-          <li><strong>Plantation Crops</strong> — Tea, coffee, rubber, coconut, spices</li>
-          <li><strong>Post-Harvest Technology</strong> — Storage, processing, value addition</li>
-        </ul>
-        <h2>Importance of Horticulture</h2>
-        <ul>
-          <li>Nutritional security — rich source of vitamins, minerals, antioxidants</li>
-          <li>Employment generation — labour-intensive sector</li>
-          <li>Higher income per unit area compared to field crops</li>
-          <li>Export earnings — India exports spices, grapes, mangoes</li>
-        </ul>
-        <div class="stud-didyouknow"><span class="stud-didyouknow__icon">💡</span><p class="stud-didyouknow__text"><strong>Did you know?</strong> India is the world's largest producer of bananas, mangoes, papayas, and spices, and the second largest producer of fruits and vegetables overall.</p></div>
-      `
-    }
-  };
+      /* ---------------------------------------------------------------- */
+      /* DATA: 25 B.Sc. (Hons.) Agriculture Subjects Dataset               */
+      /* ---------------------------------------------------------------- */
+      const SUBJECTS_DATA = [
+        {
+          id: "agronomy",
+          name: "Agronomy",
+          group: "crop",
+          icon: "🌾",
+          desc: "Principles of Crop Production, Tillage, Cropping Systems & Water Management.",
+          formula: "Irrigation Requirement (IR) = Crop Water Needs (ETc) - Effective Rainfall (Re)\nSeed Rate (kg/ha) = (Target Population x Test Weight (g)) / (Purity % x Germination % x 10)",
+          overview: "Agronomy is the foundational branch of agricultural science dealing with field crop production and soil management. It integrates weather, soil, and crop genetics for optimal yields.",
+          keyPoints: [
+            "Tillage classification: Primary, Secondary, Zero-Tillage, and Conservation Tillage.",
+            "Water Use Efficiency (WUE): Yield per unit of water consumed (kg/ha-mm).",
+            "Cropping Intensity (%) = (Total Cropped Area / Net Sown Area) x 100.",
+            "Herbicide classification: Pre-emergence (Pendimethalin) vs Post-emergence (2,4-D)."
+          ],
+          examNote: "High-yield Exam Tip: Zero tillage was pioneered by Jethro Tull. Pendimethalin is applied within 48 hours of sowing.",
+          quiz: {
+            question: "Which of the following is a pre-emergence herbicide commonly used in pulses?",
+            options: ["2,4-D", "Pendimethalin", "Glyphosate", "Paraquat"],
+            correct: 1
+          }
+        },
+        {
+          id: "soil-science",
+          name: "Soil Science",
+          group: "soil",
+          icon: "🧪",
+          desc: "Soil Chemistry, Fertility, Cation Exchange Capacity & Soil Physics.",
+          formula: "Cation Exchange Capacity (CEC) = Sum of exchangeable Ca2+ + Mg2+ + K+ + Na+ + H+ (cmol/kg)\nBulk Density (BD) = Mass of Oven Dry Soil / Total Soil Volume",
+          overview: "Soil Science studies soil as a natural resource on the surface of the Earth, including soil formation, classification, mapping, and physical, chemical, and biological properties.",
+          keyPoints: [
+            "Essential Plant Nutrients: 17 elements (Macro: N, P, K, Ca, Mg, S; Micro: Fe, Mn, Zn, Cu, B, Mo, Cl, Ni).",
+            "Soil Texture Triangle: Classifies soil based on Sand, Silt, and Clay percentages.",
+            "Soil pH Scale: Acidic (<6.5), Neutral (6.5-7.5), Alkaline (>7.5). Gypsum is used for Sodic soil reclamation."
+          ],
+          examNote: "Remember: Gypsum (CaSO4.2H2O) reclaims Sodic soils; Lime (CaCO3) reclaims Acid soils.",
+          quiz: {
+            question: "Which amendment is used to reclaim Sodic soils?",
+            options: ["Lime", "Gypsum", "Urea", "Rock Phosphate"],
+            correct: 1
+          }
+        },
+        {
+          id: "horticulture",
+          name: "Horticulture",
+          group: "crop",
+          icon: "🍎",
+          desc: "Fruit Science (Pomology), Olericulture, Floriculture & Post-Harvest.",
+          formula: "TSS (Total Soluble Solids) measured in Brix using Hand Refractometer\nJelly Making Pectin test: Alcohol test (1 tsp juice + 1 tsp alcohol)",
+          overview: "Horticulture focuses on high-value crops including fruits, vegetables, flowers, spices, and plantation crops, alongside post-harvest technology.",
+          keyPoints: [
+            "Propagation methods: Shield Grafting (Citrus), Air Layering (Guava, Litchi), Tissue Culture (Banana).",
+            "Climacteric fruits (Banana, Mango, Papaya) show respiration burst after harvest vs Non-climacteric (Citrus, Grape).",
+            "Pectin content is critical for Guava Jam/Jelly preparation (ideal pH 3.2, TSS 65%)."
+          ],
+          examNote: "ICAR Exam Key: Guava is rich in Pectin. Mango propagation standard method is Veneer Grafting.",
+          quiz: {
+            question: "Which fruit is non-climacteric in nature?",
+            options: ["Mango", "Banana", "Citrus", "Papaya"],
+            correct: 2
+          }
+        },
+        {
+          id: "plant-pathology",
+          name: "Plant Pathology",
+          group: "crop",
+          icon: "🔬",
+          desc: "Fungal, Bacterial, Viral Diseases & Integrated Disease Management.",
+          formula: "Disease Index (%) = (Sum of all numerical ratings / (Total plants observed x Max rating)) x 100",
+          overview: "Plant Pathology is the scientific study of diseases in plants caused by pathogens (fungi, bacteria, viruses) and environmental conditions.",
+          keyPoints: [
+            "Bordeaux Mixture formula: 5 lbs Copper Sulfate + 5 lbs Lime + 50 gallons Water (5:5:50).",
+            "Late Blight of Potato caused by Phytophthora infestans (caused Irish Famine 1845).",
+            "Karna Bunt of Wheat caused by Tilletia indica (foul fishy odor due to Trimethylamine)."
+          ],
+          examNote: "Important: Bordeaux mixture was discovered by P.M.A. Millardet in France (1885).",
+          quiz: {
+            question: "Who discovered Bordeaux mixture for downy mildew control?",
+            options: ["E.J. Butler", "P.M.A. Millardet", "Anton de Bary", "Robert Koch"],
+            correct: 1
+          }
+        },
+        {
+          id: "entomology",
+          name: "Entomology",
+          group: "crop",
+          icon: "🐛",
+          desc: "Insect Morphology, Taxonomy, Pest Management (IPM) & Beneficial Insects.",
+          formula: "Economic Injury Level (EIL) = P / (C x V x I x D)\nwhere P = Cost of management, C = Value of crop",
+          overview: "Entomology deals with insect pests damaging agricultural crops, as well as beneficial insects like honeybees (Apiculture) and silkworms (Sericulture).",
+          keyPoints: [
+            "Insect Mouthparts: Biting & Chewing (Grasshopper), Piercing & Sucking (Aphids, Whitefly).",
+            "ETL vs EIL: Economic Threshold Level (ETL) is the population level at which control measures should be initiated.",
+            "Neem-based pesticide active ingredient: Azadirachtin."
+          ],
+          examNote: "Golden Rule: ETL is always LOWER than EIL. Action is taken at ETL to prevent reaching EIL.",
+          quiz: {
+            question: "At which pest population density should control measures be initiated?",
+            options: ["EIL", "ETL", "General Equilibrium Position", "Damage Boundary"],
+            correct: 1
+          }
+        },
+        { id: "genetics", name: "Genetics & Plant Breeding", group: "crop", icon: "🧬", desc: "Mendelian Principles, Hybrid Breeding & Agricultural Biotechnology.", formula: "Heterosis (%) = ((F1 - MP) / MP) x 100", overview: "Focuses on genetic principles and breeding methods for crop improvement.", keyPoints: ["Mendel's Dihybrid Ratio: 9:3:3:1", "Emasculation: Removal of anthers before dehiscence."], examNote: "Emasculation is mandatory in self-pollinated crops.", quiz: { question: "What is Mendel's dihybrid phenotypic ratio?", options: ["3:1", "9:3:3:1", "1:2:1", "9:7"], correct: 1 } },
+        { id: "agri-economics", name: "Agricultural Economics", group: "economics", icon: "📈", desc: "Micro/Macro Economics, Elasticity & Production Economics.", formula: "Marginal Rate of Technical Substitution (MRTS) = ΔK / ΔL", overview: "Applies economic theory to optimize agricultural production and resource allocation.", keyPoints: ["Law of Diminishing Marginal Returns", "Price Elasticity of Demand"], examNote: "Agricultural products generally face Inelastic Demand.", quiz: { question: "Agricultural produce generally exhibits which elasticity?", options: ["Perfectly Elastic", "Inelastic", "Unitary", "Infinite"], correct: 1 } },
+        { id: "extension", name: "Agricultural Extension", group: "economics", icon: "📢", desc: "Extension Methods, Rural Communication & Adoption Process.", formula: "Adoption Stages: AIETA (Awareness -> Interest -> Evaluation -> Trial -> Adoption)", overview: "Bridge between agricultural research institutions and farming communities.", keyPoints: ["Frontline Demonstrations (FLD)", "Krishi Vigyan Kendra (KVK)"], examNote: "First KVK was established at Puducherry in 1974.", quiz: { question: "In which year was the first KVK established at Puducherry?", options: ["1965", "1974", "1980", "1998"], correct: 1 } },
+        { id: "seed-tech", name: "Seed Science & Technology", group: "crop", icon: "🌱", desc: "Seed Production, Certification Standards & Germination Testing.", formula: "Real Value of Seed (%) = (Purity % x Germination %) / 100", overview: "Ensures high genetic and physical purity of seeds delivered to farmers.", keyPoints: ["Tag Colors: Breeder (Golden Yellow), Foundation (White), Certified (Blue)."], examNote: "Foundation seed tag is WHITE; Certified seed tag is AZURE BLUE.", quiz: { question: "What is the color of the Foundation Seed Tag?", options: ["Golden Yellow", "White", "Azure Blue", "Green"], correct: 1 } },
+        { id: "agri-eng", name: "Agricultural Engineering", group: "engineering", icon: "🚜", desc: "Farm Machinery, Drip Irrigation & Solar Energy.", formula: "Field Capacity (ha/hr) = (Width (m) x Speed (km/h)) / 10", overview: "Applies engineering mechanics and technology to farm operations and water delivery.", keyPoints: ["Drip Irrigation Efficiency: 90-95%", "Mouldboard (MB) Plough for primary tillage."], examNote: "Drip irrigation saves up to 50-70% water compared to surface flooding.", quiz: { question: "Which irrigation method offers highest water application efficiency (90%+)?", options: ["Check Basin", "Furrow", "Drip", "Sprinkler"], correct: 2 } },
+        { id: "biochemistry", name: "Agricultural Biochemistry", group: "soil", icon: "⚗️", desc: "Enzymes, Amino Acids, Lipids & Carbohydrate Pathways.", formula: "pH = -log[H+]\nMichaelis-Menten Equation: v = (Vmax * [S]) / (Km + [S])", overview: "Biochemical transformations in plant cells, crop quality, and metabolic pathways.", keyPoints: ["Rubisco is the most abundant enzyme on Earth.", "Essential amino acids in cereal crops."], examNote: "Cereals are deficient in Lysine; Pulses are deficient in Methionine.", quiz: { question: "Cereal grains are generally deficient in which amino acid?", options: ["Methionine", "Lysine", "Tryptophan", "Leucine"], correct: 1 } },
+        { id: "plant-physio", name: "Plant Physiology", group: "crop", icon: "🍃", desc: "Photosynthesis (C3, C4, CAM), Plant Growth Hormones & Transpiration.", formula: "Net Photosynthesis = Gross Photosynthesis - Respiration", overview: "Functioning of plant tissues, stomatal movement, and growth regulators.", keyPoints: ["C4 Plants (Maize, Sugarcane) have Kranz Anatomy.", "Auxin promotes apical dominance."], examNote: "Kranz anatomy is a key structural feature of C4 plants.", quiz: { question: "Kranz anatomy is characteristic of which group of crops?", options: ["C3 Plants", "C4 Plants", "CAM Plants", "Parasitic Plants"], correct: 1 } },
+        { id: "microbiology", name: "Agricultural Microbiology", group: "soil", icon: "🧫", desc: "Rhizobium, Biofertilizers, Mycorrhiza & Nitrogen Fixation.", formula: "N2 + 8H+ + 8e- + 16ATP -> 2NH3 + H2 + 16ADP + 16Pi", overview: "Role of microorganisms in nutrient cycling, biofertilizers, and soil fertility.", keyPoints: ["Rhizobium legume symbiosis", "VAM (Vesicular Arbuscular Mycorrhiza) for Phosphorus uptake."], examNote: "Rhizobium leguminosarum fixes atmospheric nitrogen in legume nodules.", quiz: { question: "Which microorganism is widely used as a biofertilizer for Nitrogen fixation in legumes?", options: ["Azotobacter", "Rhizobium", "Aspergillus", "Trichoderma"], correct: 1 } },
+        { id: "meteorology", name: "Agricultural Meteorology", group: "engineering", icon: "🌤️", desc: "Agro-climatic Zones, Monsoon & Weather Forecasting.", formula: "Heat Units (GDD) = ((Tmax + Tmin) / 2) - Tbase", overview: "Atmospheric weather parameters affecting crop growth and yield modeling.", keyPoints: ["Monsoon seasons in India: SW Monsoon (June-Sept) & NE Monsoon.", "Growing Degree Days (GDD)."], examNote: "South-West Monsoon accounts for over 75% of India's annual rainfall.", quiz: { question: "Which monsoon brings the major rainfall (>75%) in India?", options: ["North-East", "South-West", "Western Disturbances", "Retreating Monsoon"], correct: 1 } },
+        { id: "animal-husbandry", name: "Animal Husbandry & Dairy", group: "engineering", icon: "🐄", desc: "Livestock Nutrition, Milk Chemistry & Poultry Management.", formula: "Fat % + SNF % = Total Solids (TS %)", overview: "Care, management, breeding, and feeding of domestic livestock and poultry.", keyPoints: ["Sahiwal, Red Sindhi (Indigenous Dairy Breeds).", "Operation Flood (White Revolution) founded by Dr. Verghese Kurien."], examNote: "Dr. Verghese Kurien is known as the Father of White Revolution in India.", quiz: { question: "Who is known as the Father of the White Revolution in India?", options: ["M.S. Swaminathan", "Dr. Verghese Kurien", "Norman Borlaug", "B.P. Pal"], correct: 1 } },
+        { id: "statistics", name: "Agricultural Statistics", group: "economics", icon: "📊", desc: "Biostatistics, Design of Experiments (RBD, CRD, Split Plot).", formula: "Standard Error (SE) = s / sqrt(n)\nANOVA F-value = Treatment Mean Square / Error Mean Square", overview: "Statistical design and analysis of agricultural field trials.", keyPoints: ["RBD (Randomized Block Design) controls one-way fertility gradient.", "ANOVA principle."], examNote: "RBD is suitable when fertility gradient is in ONE direction.", quiz: { question: "Which experimental design is used when soil fertility gradient is in one direction?", options: ["CRD", "RBD", "LSD", "Factorial"], correct: 1 } },
+        { id: "organic-farming", name: "Organic Farming", group: "engineering", icon: "🌿", desc: "Panchagavya, Vermicomposting, Bio-inputs & NPOP Certification.", formula: "C:N Ratio of Good Compost = 15:1 to 20:1", overview: "Ecological farming system eliminating synthetic fertilizers and pesticides.", keyPoints: ["Eisenia fetida (Red Worm) for vermicomposting.", "National Programme for Organic Production (NPOP)."], examNote: "Sikkim is India's first 100% Organic State.", quiz: { question: "Which Indian state became the world's first 100% organic state?", options: ["Kerala", "Sikkim", "Punjab", "Himachal Pradesh"], correct: 1 } },
+        { id: "marketing", name: "Agricultural Marketing", group: "economics", icon: "🛒", desc: "APMC Mandis, e-NAM Platform & Price Discovery.", formula: "Producer's Share in Consumer's Rupee (%) = (Pf / Pc) x 100", overview: "Marketing channels, price stabilization, and digital trading platforms.", keyPoints: ["e-NAM (National Agriculture Market) launched in 2016.", "AGMARK certification for quality."], examNote: "e-NAM connects APMC mandis online for unified national trading.", quiz: { question: "When was the e-NAM digital trading portal launched in India?", options: ["2010", "2016", "2019", "2021"], correct: 1 } },
+        { id: "farm-management", name: "Farm Management", group: "economics", icon: "📋", desc: "Cost Concepts (Cost A1, A2, B, C), Farm Budgeting & Income.", formula: "Cost C2 = Cost B2 + Imputed value of family labor", overview: "Decision-making processes in farm business enterprise operation.", keyPoints: ["Cost A1: Out-of-pocket expenses.", "Cost C2 is used for MSP calculation by CACP."], examNote: "MSP is recommended by CACP (Commission for Agricultural Costs & Prices).", quiz: { question: "Which body recommends Minimum Support Prices (MSP) in India?", options: ["NABARD", "CACP", "NITI Aayog", "ICAR"], correct: 1 } },
+        { id: "finance", name: "Agricultural Finance", group: "economics", icon: "🏦", desc: "Kisan Credit Card (KCC), NABARD & Priority Sector Lending.", formula: "3 R's of Credit: Return, Repayment Capacity, Risk-bearing Ability", overview: "Institutional credit flow, rural banking, and agricultural insurance.", keyPoints: ["NABARD established on 12th July 1982.", "Kisan Credit Card (KCC) scheme introduced in 1998."], examNote: "NABARD was set up on the recommendation of the B. Sivaraman Committee.", quiz: { question: "NABARD was established in which year?", options: ["1975", "1982", "1991", "2000"], correct: 1 } },
+        { id: "environmental-sci", name: "Environmental Science", group: "soil", icon: "🌍", desc: "Ecosystems, Pollution, Climate Change & Sustainable Agriculture.", formula: "BOD (Biochemical Oxygen Demand) = (D1 - D2) / P", overview: "Environmental conservation, biodiversity, and sustainable land management.", keyPoints: ["Eutrophication caused by excess Nitrates & Phosphates in water.", "Greenhouse gases: CO2, CH4, N2O."], examNote: "Methane (CH4) emission is majorly associated with flooded rice paddies.", quiz: { question: "Flooded rice fields are a major source of which greenhouse gas?", options: ["Carbon Dioxide", "Methane", "Ozone", "Nitrous Oxide"], correct: 1 } },
+        { id: "food-tech", name: "Food Science & Technology", group: "soil", icon: "🥫", desc: "Food Preservation, Processing, FSSAI & Quality Standards.", formula: "Thermal Death Time (TDT) F0 value for C. botulinum = 2.52 mins at 121°C", overview: "Processing raw agricultural produce into safe, shelf-stable food products.", keyPoints: ["Pasteurization: LTLT (63°C for 30 mins) & HTST (72°C for 15 secs).", "FSSAI standards."], examNote: "HTST Pasteurization temperature is 72°C for 15 seconds.", quiz: { question: "What is the temperature and time for HTST milk pasteurization?", options: ["63°C for 30 mins", "72°C for 15 secs", "100°C for 5 mins", "121°C for 2 secs"], correct: 1 } },
+        { id: "informatics", name: "Agricultural Informatics", group: "economics", icon: "💻", desc: "GIS, Remote Sensing, Farm Mobile Apps & AI in Farming.", formula: "NDVI = (NIR - Red) / (NIR + Red)", overview: "Application of Information Communication Technology (ICT) and spatial tech in agriculture.", keyPoints: ["NDVI (Normalized Difference Vegetation Index) measures crop vigor.", "GPS-guided precision farming."], examNote: "NDVI values range from -1.0 to +1.0; healthy green vegetation gives 0.6 to 0.9.", quiz: { question: "Which remote sensing index is widely used to assess green crop canopy health?", options: ["NDVI", "PH", "EC", "BOD"], correct: 0 } },
+        { id: "crop-production", name: "Crop Production Practices", group: "crop", icon: "🌾", desc: "Package of Practices for Rice, Wheat, Cotton, Sugarcane & Pulses.", formula: "Seed Rate for Rice (SRI Method) = 5-6 kg/ha (vs 100 kg/ha broadcasting)", overview: "Comprehensive agronomic management package from land preparation to harvest.", keyPoints: ["SRI (System of Rice Intensification) uses young seedlings (8-12 days old).", "Sugarcane trench planting."], examNote: "SRI rice method uses 8-12 day old single seedlings per hill with wide spacing.", quiz: { question: "What is the recommended seedling age for transplanting in SRI rice method?", options: ["8-12 days", "25-30 days", "40 days", "50 days"], correct: 0 } },
+        { id: "rawe", name: "RAWE & Practical Attachment", group: "economics", icon: "🎒", desc: "Rural Agricultural Work Experience, Village Attachment & Agro-Industry.", formula: "Field Survey Report = Demographics + Land Use + Cost of Cultivation + SWOT", overview: "Hands-on rural village attachment and agribusiness industrial internship program.", keyPoints: ["Village Attachment (6-8 weeks).", "Agro-industrial Attachment."], examNote: "RAWE is a mandatory hands-on practical credit requirement in final year B.Sc. Agri.", quiz: { question: "RAWE program is conducted during which year of B.Sc. (Hons.) Agriculture?", options: ["1st Year", "2nd Year", "3rd Year", "4th Year"], correct: 3 } }
+      ];
 
-  // Which topics belong to which subject (for sidebar list)
-  const SUBJECT_TOPICS = {
-    agronomy: ['agronomy-intro','crop-production','tillage','irrigation','seed-rate','cropping-systems'],
-    soil: ['soil-formation','soil-ph','soil-fertility','organic-matter','soil-texture'],
-    pathology: ['disease-intro','fungal-diseases','bacterial-diseases','ipm','biocontrol'],
-    horticulture: ['hort-intro','fruit-crops','vegetable-crops','post-harvest'],
-    genetics: ['mendelism','hybridization','mutation','gmo'],
-    economics: ['farm-management','market-linkage','cooperatives','agri-credit'],
-    entomology: ['insect-pests','life-cycles','pesticide-groups']
-  };
+      /* ---------------------------------------------------------------- */
+      /* DATA: Leaderboard & Preset Avatars                               */
+      /* ---------------------------------------------------------------- */
+      const LEADERBOARD_DATA = [
+        { rank: 1, name: "Priya Sharma", college: "IARI New Delhi", subjects: 25, badges: 8, xp: 2450 },
+        { rank: 2, name: "Rahul Verma", college: "TNAU Coimbatore", subjects: 23, badges: 7, xp: 2100 },
+        { rank: 3, name: "Ananya Patel", college: "GBPUAT Pantnagar", subjects: 21, badges: 6, xp: 1850 },
+        { rank: 4, name: "Mahammad Ashiq (You)", college: "Agri Science Univ", subjects: 14, badges: 4, xp: 450, isYou: true },
+        { rank: 5, name: "Vikram Singh", college: "PAU Ludhiana", subjects: 12, badges: 3, xp: 410 }
+      ];
 
-  // Flat ordered list for prev/next navigation
-  const TOPIC_ORDER = Object.values(SUBJECT_TOPICS).flat();
+      const PRESET_AVATARS = [
+        "https://api.dicebear.com/7.x/bottts/svg?seed=AgriStudent",
+        "https://api.dicebear.com/7.x/bottts/svg?seed=Pioneer",
+        "https://api.dicebear.com/7.x/bottts/svg?seed=Scholar",
+        "https://api.dicebear.com/7.x/bottts/svg?seed=Scientist"
+      ];
 
-  /* ── Progress tracking ─────────────────────────────────────────────── */
-  const READ_KEY = 'agrilearn_read_topics';
-  function getRead() {
-    try { return new Set(JSON.parse(localStorage.getItem(READ_KEY) || '[]')); }
-    catch(e) { return new Set(); }
-  }
-  function saveRead(set) {
-    localStorage.setItem(READ_KEY, JSON.stringify([...set]));
-  }
-  function updateProgress() {
-    const read = getRead();
-    const total = TOPIC_ORDER.length;
-    const pct = Math.round(read.size / total * 100);
-    document.getElementById('progress-fill').style.width = pct + '%';
-    document.getElementById('progress-pct').textContent = read.size + ' of ' + total + ' topics read (' + pct + '%)';
+      const BADGES = [
+        { icon: "🌾", name: "Agronomy Pioneer" },
+        { icon: "🧪", name: "Soil Doctor" },
+        { icon: "⚡", name: "Fast Solver" },
+        { icon: "🔥", name: "7-Day Streak" },
+        { icon: "📜", name: "Certified Advisor" },
+        { icon: "🏆", name: "Top Leaderboard" }
+      ];
 
-    // Update per-subject bars
-    Object.entries(SUBJECT_TOPICS).forEach(([subj, topics]) => {
-      const bar = document.getElementById('bar-' + subj);
-      if (!bar) return;
-      const subjectRead = topics.filter(t => read.has(t)).length;
-      bar.style.width = Math.round(subjectRead / topics.length * 100) + '%';
-    });
-  }
+      /* ---------------------------------------------------------------- */
+      /* APP STATE & PERSISTENCE                                           */
+      /* ---------------------------------------------------------------- */
+      let appState = {
+        xp: parseInt(localStorage.getItem("agri_xp") || "450"),
+        streak: parseInt(localStorage.getItem("agri_streak") || "3"),
+        avatar: localStorage.getItem("agri_avatar") || PRESET_AVATARS[0],
+        name: localStorage.getItem("agri_name") || "Mahammad Ashiq",
+        activeTab: "prepare",
+        activeSubjectId: "agronomy"
+      };
 
-  /* ── State ─────────────────────────────────────────────────────────── */
-  let currentTopic = null;
+      function saveState() {
+        localStorage.setItem("agri_xp", appState.xp);
+        localStorage.setItem("agri_streak", appState.streak);
+        localStorage.setItem("agri_avatar", appState.avatar);
+        localStorage.setItem("agri_name", appState.name);
+        updateHeaderStats();
+      }
 
-  /* ── View switching ─────────────────────────────────────────────────── */
-  function showHome() {
-    document.getElementById('stud-home').classList.remove('is-hidden');
-    document.getElementById('stud-article').classList.remove('is-visible');
-    currentTopic = null;
-    document.querySelectorAll('.stud-sidebar__item').forEach(el => el.classList.remove('is-active'));
-    updateProgress();
-  }
+      function updateHeaderStats() {
+        document.getElementById("user-xp-display").textContent = appState.xp;
+        document.getElementById("user-streak-display").textContent = appState.streak;
+        document.getElementById("nav-user-avatar").src = appState.avatar;
+        document.getElementById("profile-main-avatar").src = appState.avatar;
+        document.getElementById("profile-display-name").textContent = appState.name;
+        document.getElementById("profile-xp-val").textContent = appState.xp;
+      }
 
-  function showTopic(topicId) {
-    const topic = TOPICS[topicId];
-    if (!topic) {
-      // Show placeholder for topics not yet written
-      showTopicPlaceholder(topicId);
-      return;
-    }
+      /* ---------------------------------------------------------------- */
+      /* TAB SWITCHING SYSTEM                                              */
+      /* ---------------------------------------------------------------- */
+      const navLinks = document.querySelectorAll(".hr-nav__link");
+      const tabPanes = document.querySelectorAll(".hr-tab-pane");
 
-    currentTopic = topicId;
+      function switchTab(tabId) {
+        appState.activeTab = tabId;
+        navLinks.forEach(link => {
+          link.classList.toggle("is-active", link.dataset.tab === tabId);
+        });
+        tabPanes.forEach(pane => {
+          pane.classList.toggle("is-active", pane.id === `tab-${tabId}`);
+        });
+      }
 
-    // Switch views
-    document.getElementById('stud-home').classList.add('is-hidden');
-    const art = document.getElementById('stud-article');
-    art.classList.add('is-visible');
+      navLinks.forEach(link => {
+        link.addEventListener("click", () => switchTab(link.dataset.tab));
+      });
 
-    // Breadcrumb
-    document.getElementById('bc-subject').textContent = topic.subject;
-    document.getElementById('bc-topic').textContent = topic.title;
-    document.getElementById('bc-home').onclick = showHome;
+      document.getElementById("nav-user-avatar").addEventListener("click", () => switchTab("profile"));
 
-    // Header
-    document.getElementById('art-tag').textContent = topic.icon + ' ' + topic.subject;
-    document.getElementById('art-title').textContent = topic.title;
-    document.getElementById('art-read-time').textContent = '📖 ' + topic.readTime;
+      // Mobile Menu Toggle
+      const menuToggle = document.getElementById("hr-menu-toggle");
+      const navLinksContainer = document.getElementById("hr-nav-links");
+      if (menuToggle && navLinksContainer) {
+        menuToggle.addEventListener("click", () => {
+          navLinksContainer.classList.toggle("is-mobile-open");
+        });
+      }
 
-    // Body
-    document.getElementById('art-body').innerHTML = topic.body;
+      /* ---------------------------------------------------------------- */
+      /* RENDER TAB 1: PREPARE (25 SUBJECTS)                               */
+      /* ---------------------------------------------------------------- */
+      function renderSidebarSubjects() {
+        const groups = {
+          crop: document.getElementById("group-crop-sciences"),
+          soil: document.getElementById("group-soil-sciences"),
+          engineering: document.getElementById("group-engineering"),
+          economics: document.getElementById("group-economics")
+        };
 
-    // Topic list (sidebar for this subject)
-    const topicList = document.getElementById('stud-topic-list');
-    const subjectTopics = SUBJECT_TOPICS[topic.subjectId] || [];
-    const read = getRead();
-    topicList.innerHTML = '<div class="stud-topic-list__head">' + topic.subject + ' — All Topics</div>' +
-      subjectTopics.map(tid => {
-        const t = TOPICS[tid];
-        const label = t ? t.title : tid.replace(/-/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-        return `<a data-topiclink="${tid}" class="${tid === topicId ? 'is-current' : ''}">${label}${read.has(tid) ? '<span class="stud-topic-check">✓</span>' : ''}</a>`;
-      }).join('');
+        Object.values(groups).forEach(el => { if (el) el.innerHTML = ""; });
 
-    topicList.querySelectorAll('[data-topiclink]').forEach(a => {
-      a.addEventListener('click', () => showTopic(a.dataset.topiclink));
-    });
+        SUBJECTS_DATA.forEach(sub => {
+          const li = document.createElement("li");
+          li.className = `prep-subject-item ${sub.id === appState.activeSubjectId ? "is-active" : ""}`;
+          li.dataset.id = sub.id;
+          li.innerHTML = `<span>${sub.icon}</span> <span>${sub.name}</span>`;
+          li.addEventListener("click", () => {
+            appState.activeSubjectId = sub.id;
+            renderSidebarSubjects();
+            renderArticle(sub.id);
+          });
 
-    // Mark read button
-    const mrBtn = document.getElementById('mark-read-btn');
-    const isRead = read.has(topicId);
-    mrBtn.className = 'stud-mark-read' + (isRead ? ' is-done' : '');
-    mrBtn.innerHTML = isRead
-      ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Read'
-      : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg> Mark as read';
+          if (groups[sub.group]) groups[sub.group].appendChild(li);
+        });
+      }
 
-    mrBtn.onclick = () => {
-      const r = getRead();
-      if (r.has(topicId)) { r.delete(topicId); } else { r.add(topicId); }
-      saveRead(r);
-      showTopic(topicId); // re-render to update button + topic list
-    };
+      function renderArticle(subjectId) {
+        const sub = SUBJECTS_DATA.find(s => s.id === subjectId) || SUBJECTS_DATA[0];
+        const container = document.getElementById("prep-article-container");
 
-    // Prev / Next
-    const idx = TOPIC_ORDER.indexOf(topicId);
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
-    if (idx > 0) {
-      const prevId = TOPIC_ORDER[idx - 1];
-      const prevT = TOPICS[prevId];
-      prevBtn.hidden = false;
-      document.getElementById('prev-label').textContent = prevT ? prevT.title : prevId;
-      prevBtn.onclick = () => showTopic(prevId);
-    } else { prevBtn.hidden = true; }
-    if (idx < TOPIC_ORDER.length - 1) {
-      const nextId = TOPIC_ORDER[idx + 1];
-      const nextT = TOPICS[nextId];
-      nextBtn.hidden = false;
-      document.getElementById('next-label').textContent = nextT ? nextT.title : nextId;
-      nextBtn.onclick = () => showTopic(nextId);
-    } else { nextBtn.hidden = true; }
+        container.innerHTML = `
+          <div class="prep-breadcrumb">Prepare / B.Sc. Agriculture / ${sub.name}</div>
+          <div class="prep-header">
+            <div>
+              <span class="prep-badge">${sub.icon} ${sub.group.toUpperCase()}</span>
+              <h1 class="prep-title">${sub.name}</h1>
+              <p style="color: var(--hr-text-muted); margin: 0;">${sub.desc}</p>
+            </div>
+            <button class="prep-btn-complete" id="btn-complete-subject">✓ Complete (+50 XP)</button>
+          </div>
 
-    // Active sidebar item
-    document.querySelectorAll('.stud-sidebar__item').forEach(el => {
-      el.classList.toggle('is-active', el.dataset.topic === topicId);
-    });
+          <section>
+            <h3 style="color: #0f172a; margin-top: 0;">📌 Overview & Core Scope</h3>
+            <p style="line-height: 1.7; color: #334155;">${sub.overview}</p>
 
-    // Scroll to top
-    document.querySelector('.stud-main').scrollTop = 0;
-    window.scrollTo(0, 0);
-  }
+            <div class="gfg-code-box">
+              <div class="gfg-code-box__header">
+                <span>Core Agricultural Formula / Key Snippet</span>
+                <button class="gfg-code-box__btn" onclick="navigator.clipboard.writeText(\`${sub.formula}\`); alert('Copied to clipboard!');">Copy Snippet</button>
+              </div>
+              <pre style="margin: 0; white-space: pre-wrap;">${sub.formula}</pre>
+            </div>
 
-  function showTopicPlaceholder(topicId) {
-    currentTopic = topicId;
-    document.getElementById('stud-home').classList.add('is-hidden');
-    const art = document.getElementById('stud-article');
-    art.classList.add('is-visible');
-    const label = topicId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-    document.getElementById('art-title').textContent = label;
-    document.getElementById('art-tag').textContent = '📌 Coming Soon';
-    document.getElementById('art-body').innerHTML = `<div class="stud-keybox"><p class="stud-keybox__title">🚧 Content Coming Soon</p><ul><li>This topic's notes are being prepared by our curriculum team.</li><li>In the meantime, use the AI assistant on the Farmer Dashboard for general agri queries.</li></ul></div>`;
-    document.getElementById('mark-read-btn').hidden = true;
-    document.getElementById('stud-topic-list').innerHTML = '';
-    document.getElementById('prev-btn').hidden = true;
-    document.getElementById('next-btn').hidden = true;
-    document.getElementById('bc-subject').textContent = '';
-    document.getElementById('bc-topic').textContent = label;
-    document.getElementById('bc-home').onclick = showHome;
-  }
+            <h3>💡 Key Concepts & Package of Practices</h3>
+            <ul style="line-height: 1.8; color: #334155; padding-left: 20px;">
+              ${sub.keyPoints.map(pt => `<li>${pt}</li>`).join("")}
+            </ul>
 
-  /* ── Sidebar interactions ────────────────────────────────────────────── */
-  document.querySelectorAll('.stud-sidebar__item').forEach(item => {
-    item.addEventListener('click', () => showTopic(item.dataset.topic));
-  });
+            <div class="w3-note-box">
+              <strong>📖 Exam Prep Note:</strong> ${sub.examNote}
+            </div>
 
-  // Collapsible sidebar sections
-  document.querySelectorAll('.stud-sidebar__heading').forEach(heading => {
-    heading.addEventListener('click', () => {
-      const section = heading.closest('.stud-sidebar__section');
-      section.classList.toggle('is-collapsed');
-    });
-  });
+            <div class="article-quiz">
+              <h4 style="margin: 0 0 12px; color: #0f172a;">🎯 Quick Knowledge Check</h4>
+              <p style="margin: 0 0 14px; font-weight: 500;">${sub.quiz.question}</p>
+              ${sub.quiz.options.map((opt, idx) => `
+                <div class="article-quiz__option" data-idx="${idx}">${opt}</div>
+              `).join("")}
+            </div>
+          </section>
+        `;
 
-  // Subject cards on home → open first topic of that subject
-  document.querySelectorAll('.stud-subj-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const subj = card.dataset.subject;
-      const topics = SUBJECT_TOPICS[subj];
-      if (topics && topics.length) showTopic(topics[0]);
-    });
-  });
+        // Handle Complete Button
+        document.getElementById("btn-complete-subject").addEventListener("click", () => {
+          appState.xp += 50;
+          saveState();
+          alert("🎉 Subject completed! You earned +50 XP!");
+        });
 
-  /* ── Breadcrumb home ─────────────────────────────────────────────────── */
-  document.getElementById('bc-home').addEventListener('click', showHome);
+        // Handle Quiz Options
+        const quizOpts = container.querySelectorAll(".article-quiz__option");
+        quizOpts.forEach(opt => {
+          opt.addEventListener("click", () => {
+            const selectedIdx = parseInt(opt.dataset.idx);
+            if (selectedIdx === sub.quiz.correct) {
+              opt.classList.add("is-correct");
+              appState.xp += 20;
+              saveState();
+              alert("Correct! +20 XP awarded!");
+            } else {
+              opt.classList.add("is-wrong");
+              quizOpts[sub.quiz.correct].classList.add("is-correct");
+            }
+          });
+        });
+      }
 
-  /* ── Search ──────────────────────────────────────────────────────────── */
-  const searchInput = document.getElementById('topic-search');
-  searchInput.addEventListener('input', () => {
-    const q = searchInput.value.toLowerCase().trim();
-    if (!q) { document.querySelectorAll('.stud-sidebar__item').forEach(el => el.style.display = ''); return; }
-    document.querySelectorAll('.stud-sidebar__item').forEach(el => {
-      const label = (el.textContent || '').toLowerCase();
-      const topicData = TOPICS[el.dataset.topic];
-      const matches = label.includes(q) || (topicData && (topicData.subject.toLowerCase().includes(q) || topicData.body.toLowerCase().includes(q)));
-      el.style.display = matches ? '' : 'none';
-      if (matches) el.closest('.stud-sidebar__section').classList.remove('is-collapsed');
-    });
-  });
+      // Search Filtering
+      document.getElementById("prep-search-input").addEventListener("input", (e) => {
+        const query = e.target.value.toLowerCase();
+        document.querySelectorAll(".prep-subject-item").forEach(item => {
+          const text = item.textContent.toLowerCase();
+          item.style.display = text.includes(query) ? "flex" : "none";
+        });
+      });
 
-  /* ── Mobile sidebar toggle ───────────────────────────────────────────── */
-  const sidebar = document.getElementById('stud-sidebar');
-  document.getElementById('sidebar-toggle').addEventListener('click', () => {
-    sidebar.classList.toggle('is-open');
-  });
-  document.addEventListener('click', e => {
-    if (!sidebar.contains(e.target) && !document.getElementById('sidebar-toggle').contains(e.target)) {
-      sidebar.classList.remove('is-open');
-    }
-  });
+      /* ---------------------------------------------------------------- */
+      /* RENDER TAB 2 & 4: TESTS & CERTIFICATIONS                          */
+      /* ---------------------------------------------------------------- */
+      function renderTests() {
+        const grid = document.getElementById("tests-grid-container");
+        const tests = [
+          { title: "Agronomy & Crop Production Mock", time: "20 mins", qs: "15 Questions" },
+          { title: "Soil Fertility & Chemistry Test", time: "15 mins", qs: "10 Questions" },
+          { title: "Entomology & IPM Challenge", time: "15 mins", qs: "10 Questions" },
+          { title: "ICAR JRF Agri Science Full Mock", time: "45 mins", qs: "30 Questions" }
+        ];
 
-  /* ── Init ─────────────────────────────────────────────────────────────── */
-  updateProgress();
+        grid.innerHTML = tests.map(t => `
+          <div class="test-card">
+            <span class="test-card__badge">Timed Exam</span>
+            <h3 class="test-card__title">${t.title}</h3>
+            <div class="test-card__meta">
+              <span>⏱️ ${t.time}</span>
+              <span>📋 ${t.qs}</span>
+            </div>
+            <button class="btn-start-test" onclick="alert('Starting Test... Answer carefully!');">Start Practice Test</button>
+          </div>
+        `).join("");
+      }
 
-})();
-</script>
+      function renderCertifications() {
+        const grid = document.getElementById("cert-grid-container");
+        const certs = [
+          { icon: "🌾", title: "Certified Crop Advisor (Level 1)", desc: "Validates expertise in Agronomy, Package of Practices, and Weed Control." },
+          { icon: "🧪", title: "Soil Health & Nutrient Analyst", desc: "Validates proficiency in Soil Chemistry, Fertilizer Calculation, and Soil Testing." },
+          { icon: "🌿", title: "Organic Farming Specialist", desc: "Validates knowledge of Bio-inputs, Vermicomposting, and NPOP Standards." }
+        ];
+
+        grid.innerHTML = certs.map(c => `
+          <div class="cert-card">
+            <div class="cert-card__icon">${c.icon}</div>
+            <h3 class="cert-card__title">${c.title}</h3>
+            <p class="cert-card__desc">${c.desc}</p>
+            <button class="btn-start-test" onclick="openCertificate('${c.title}')">Take Exam & Claim Certificate</button>
+          </div>
+        `).join("");
+      }
+
+      window.openCertificate = function (title) {
+        document.getElementById("cert-course-title").textContent = title;
+        document.getElementById("cert-recipient-name").textContent = appState.name;
+        document.getElementById("cert-issue-date").textContent = new Date().toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById("cert-modal").classList.add("is-open");
+      };
+
+      document.getElementById("btn-close-cert").addEventListener("click", () => {
+        document.getElementById("cert-modal").classList.remove("is-open");
+      });
+
+      /* ---------------------------------------------------------------- */
+      /* RENDER TAB 3: DAILY QUIZ                                         */
+      /* ---------------------------------------------------------------- */
+      function renderDailyQuiz() {
+        const card = document.getElementById("daily-quiz-card");
+        card.innerHTML = `
+          <p style="font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 16px;">
+            Question 1 of 5: What is the primary cause of Khaira disease in rice nursery and fields?
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button style="padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; text-align: left; cursor: pointer;" onclick="alert('Incorrect! Khaira disease is caused by Zinc deficiency.');">A) Nitrogen Deficiency</button>
+            <button style="padding: 12px; border-radius: 8px; border: 1.5px solid #22c55e; background: #f0fdf4; color: #15803d; font-weight: 600; text-align: left; cursor: pointer;" onclick="appState.xp += 50; saveState(); alert('Correct! +50 XP Added!');">B) Zinc Deficiency</button>
+            <button style="padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; text-align: left; cursor: pointer;" onclick="alert('Incorrect!');">C) Iron Toxicity</button>
+          </div>
+        `;
+      }
+
+      /* ---------------------------------------------------------------- */
+      /* RENDER TAB 5: LEADERBOARD                                         */
+      /* ---------------------------------------------------------------- */
+      function renderLeaderboard() {
+        const tbody = document.getElementById("leaderboard-tbody");
+        tbody.innerHTML = LEADERBOARD_DATA.map(user => `
+          <tr class="${user.isYou ? "is-you" : ""}">
+            <td class="lb-rank ${user.rank <= 3 ? "lb-rank-" + user.rank : ""}">${user.rank === 1 ? "🥇 1" : user.rank === 2 ? "🥈 2" : user.rank === 3 ? "🥉 3" : "#" + user.rank}</td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=${user.name}" style="width: 32px; height: 32px; border-radius: 50%;" />
+                <div>
+                  <div>${user.name}</div>
+                  <div style="font-size: 11px; color: var(--hr-text-muted);">${user.college}</div>
+                </div>
+              </div>
+            </td>
+            <td>${user.subjects} / 25</td>
+            <td>🏅 ${user.badges} Badges</td>
+            <td style="font-weight: 700; color: var(--hr-green-dark);">⚡ ${user.xp} XP</td>
+          </tr>
+        `).join("");
+      }
+
+      /* ---------------------------------------------------------------- */
+      /* RENDER TAB 6: PROFILE & AVATAR SETTINGS                           */
+      /* ---------------------------------------------------------------- */
+      function renderProfile() {
+        const presetsContainer = document.getElementById("avatar-presets-container");
+        presetsContainer.innerHTML = PRESET_AVATARS.map(url => `
+          <button class="avatar-preset-btn ${appState.avatar === url ? "is-selected" : ""}" onclick="setAvatar('${url}')">
+            <img src="${url}" />
+          </button>
+        `).join("");
+
+        const gallery = document.getElementById("badge-gallery-container");
+        gallery.innerHTML = BADGES.map(b => `
+          <div class="badge-item">
+            <div class="badge-item__icon">${b.icon}</div>
+            <div class="badge-item__name">${b.name}</div>
+          </div>
+        `).join("");
+      }
+
+      window.setAvatar = function (url) {
+        appState.avatar = url;
+        saveState();
+        renderProfile();
+      };
+
+      // File upload avatar
+      document.getElementById("avatar-file-input").addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (evt) {
+            setAvatar(evt.target.result);
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // Form submit
+      document.getElementById("profile-settings-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const newName = document.getElementById("setting-name").value.trim();
+        if (newName) {
+          appState.name = newName;
+          saveState();
+          alert("Profile settings saved successfully!");
+        }
+      });
+
+      /* ---------------------------------------------------------------- */
+      /* INIT                                                              */
+      /* ---------------------------------------------------------------- */
+      updateHeaderStats();
+      renderSidebarSubjects();
+      renderArticle(appState.activeSubjectId);
+      renderTests();
+      renderCertifications();
+      renderDailyQuiz();
+      renderLeaderboard();
+      renderProfile();
+    })();
+  </script>
 </body>
 </html>
