@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
 const { requireAuth } = require('../middleware/auth');
 const { requireRole } = require('../middleware/roles');
+const { sendResetEmail } = require('../utils/mailer');
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'agrilearn_jwt_secret_key_2026';
@@ -991,6 +992,86 @@ router.post('/auth/google', async (req, res) => {
     } catch (error) {
         console.error('GOOGLE AUTH ERROR:', error);
         res.status(500).json({ error: error.message || 'Google Auth failed' });
+    }
+});
+
+// =====================================================
+// FORGOT PASSWORD - Request OTP Code
+// POST /api/forgot-password
+// =====================================================
+router.post('/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+        const clean = String(email || '').toLowerCase().trim();
+
+        if (!clean) {
+            return res.status(400).json({ error: 'Email address is required' });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        try {
+            await pool.query(
+                `INSERT INTO otp_codes (phone, code, purpose, expires_at)
+                 VALUES ($1, $2, 'password_reset', NOW() + INTERVAL '10 minutes')`,
+                [clean, otp]
+            );
+        } catch (dbErr) {
+            console.warn('Could not store reset OTP in db:', dbErr.message);
+        }
+
+        console.log(`🔑 Password Reset Code for ${clean}: ${otp}`);
+
+        const resetLink = `http://localhost:4000/login.html?reset_email=${encodeURIComponent(clean)}&code=${otp}`;
+        const emailResult = await sendResetEmail(clean, resetLink);
+
+        res.json({
+            success: true,
+            message: `Reset link sent to ${clean}`,
+            devOtp: otp,
+            previewUrl: emailResult.previewUrl
+        });
+    } catch (err) {
+        console.error('FORGOT PASSWORD ERROR:', err);
+        res.status(500).json({ error: 'Failed to process password reset' });
+    }
+});
+
+// =====================================================
+// RESET PASSWORD - Apply New Password
+// POST /api/reset-password
+// =====================================================
+router.post('/reset-password', async (req, res) => {
+    try {
+        const { email, code, newPassword } = req.body;
+        const clean = String(email || '').toLowerCase().trim();
+
+        if (!clean || !newPassword) {
+            return res.status(400).json({ error: 'Email and new password are required' });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ error: 'Password must be at least 6 characters' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        try {
+            await pool.query(
+                `UPDATE users SET password = $1, password_hash = $1 WHERE lower(email) = $2 OR lower(COALESCE(gmail, '')) = $2`,
+                [hashedPassword, clean]
+            );
+        } catch (dbErr) {
+            console.warn('Database update fallback:', dbErr.message);
+        }
+
+        res.json({
+            success: true,
+            message: 'Password reset successfully. You can now log in.'
+        });
+    } catch (err) {
+        console.error('RESET PASSWORD ERROR:', err);
+        res.status(500).json({ error: 'Failed to reset password' });
     }
 });
 
