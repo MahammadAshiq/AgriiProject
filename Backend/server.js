@@ -20,7 +20,7 @@ async function ensureDualRoleSchema() {
         await db.query('ALTER TABLE users DROP CONSTRAINT IF EXISTS users_email_key');
         await db.query(`
             CREATE UNIQUE INDEX IF NOT EXISTS users_email_role_uidx
-            ON users (lower(email), COALESCE(role, 'pending'))
+            ON users (lower(email), role)
         `);
         console.log('Dual-role accounts enabled (same email, farmer + student).');
     } catch (err) {
@@ -92,11 +92,11 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 4000;
 
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`AgriiLearn backend running on http://localhost:${PORT}`);
+        console.log(`Health check: http://localhost:${PORT}/api/health`);
+    });
+}
 
-app.listen(PORT, () => {
-
-    console.log(`AgriLearn backend running on http://localhost:${PORT}`);
-
-    console.log(`Health check: http://localhost:${PORT}/api/health`);
-
-});
+module.exports = app;

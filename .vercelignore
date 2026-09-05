@@ -1,0 +1,11 @@
+.git
+.env
+.env.local
+.env.*.local
+node_modules
+Backend/node_modules
+Assets
+WeatherForeCast
+AgriDataBase
+Docs
+README.md

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Create your account — AgriLearn</title>
+<title>Create your account — AgriiLearn</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
@@ -36,7 +36,7 @@
         <path d="M16 23c0-6 3-10 7-12-1 6-3 10-7 12Z" fill="#D9A441"/>
         <path d="M16 23c0-7-3.5-11-8-13 1 6.5 3.5 11 8 13Z" fill="#F4F1E6"/>
       </svg>
-      AgriLearn
+      AgriiLearn
     </a>
     <div class="auth-brand__body">
       <p class="auth-brand__eyebrow">Farmer &amp; Student Portal</p>
@@ -50,7 +50,7 @@
       </svg>
     </div>
     <div class="auth-brand__foot">
-      <span>agrilearn.app</span>
+      <span>agriilearn.app</span>
       <span>Free for students and farmers</span>
     </div>
   </aside>
@@ -94,6 +94,14 @@
       <div class="divider">or register with email</div>
 
       <form id="signup-form" novalidate>
+        <div class="field" id="signup-name-field">
+          <label for="signup-name">Full name</label>
+          <div class="field__control">
+            <input type="text" id="signup-name" name="name" placeholder="e.g. Ramesh Patel" autocomplete="name" required />
+          </div>
+          <p class="field-error"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span></span></p>
+        </div>
+
         <div class="field" id="signup-email-field">
           <label for="signup-email">Email address</label>
           <div class="field__control">
@@ -142,7 +150,7 @@
             <span class="verify-box__label">I'm not a robot</span>
             <span class="verify-box__sub">One tap — no puzzles</span>
           </div>
-          <div class="verify-box__badge">AgriLearn<br />Verify</div>
+          <div class="verify-box__badge">AgriiLearn<br />Verify</div>
         </div>
 
         <button type="submit" class="btn-primary" id="signup-submit">
@@ -151,7 +159,7 @@
         </button>
       </form>
 
-      <p class="auth-card__foot">By creating an account you agree to AgriLearn's Terms and Privacy Policy.</p>
+      <p class="auth-card__foot">By creating an account you agree to AgriiLearn's Terms and Privacy Policy.</p>
     </div>
   </main>
 </div>

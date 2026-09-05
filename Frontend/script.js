@@ -44,6 +44,15 @@
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+  function getApiBase() {
+    if (window.AGRILEARN_API) return window.AGRILEARN_API;
+    if (window.location.protocol === "file:") return "http://localhost:4000/api";
+    if (window.location.hostname === "localhost" && window.location.port && window.location.port !== "4000") {
+      return "http://localhost:4000/api";
+    }
+    return "/api";
+  }
+
   function setFieldError(fieldEl, message) {
     const input = fieldEl.querySelector("input");
     const errorEl = fieldEl.querySelector(".field-error");
@@ -271,15 +280,20 @@
   // role page) silently decided where the user actually ended up, no
   // matter which toggle button they clicked on the login page.
   // ------------------------------------------------------------------
-  function finishAuth({ method, email, mode, role }) {
+  function finishAuth({ method, email, name, mode, role, isReactivated }) {
     if (mode === "signup") {
-      showPageTransition(email ? `Creating your account for ${email}…` : "Creating your account…");
+      const msg = isReactivated
+        ? (email ? `Reactivating account for ${email} & sending welcome email…` : "Reactivating your account…")
+        : (email ? `Creating account for ${email} & sending welcome email…` : "Creating your account…");
+      showPageTransition(msg);
       // Send the freshly-registered user back to login, exactly like the
       // requested flow: register -> land on login -> enter credentials.
-      return wait(900).then(() => {
+      return wait(1000).then(() => {
         const url = new URL("login.html", window.location.href);
         url.searchParams.set("registered", "1");
+        if (isReactivated) url.searchParams.set("reactivated", "1");
         if (email) url.searchParams.set("email", email);
+        if (role) url.searchParams.set("role", role);
         window.location.href = url.toString();
       });
     }
@@ -345,9 +359,24 @@
             ? `Setting up AgriLearn for ${profile.email}…`
             : `Welcome back, ${profile.given_name || profile.name || "there"}…`);
           await wait(600);
+          // If registering via Google, notify backend to create record and send welcome email
+          if (mode === "signup") {
+            const apiBase = getApiBase();
+            await fetch(`${apiBase}/auth/google`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: profile.email,
+                name: profile.name || profile.given_name || "",
+                role: selectedRole,
+                googleId: profile.sub
+              })
+            }).catch(e => console.warn("Google registration API notice:", e.message));
+          }
+
           // FIXED: pass the current role-toggle selection through so a
           // Google sign-in on the login page respects Farmer/Student too.
-          await finishAuth({ method: "google", email: profile.email, mode, role: selectedRole });
+          await finishAuth({ method: "google", email: profile.email, name: profile.name, mode, role: selectedRole });
         } catch (err) {
           setButtonLoading(btn, false);
           hidePageTransition();
@@ -389,20 +418,80 @@
 
   const loginForm = $("#login-form");
   if (loginForm) {
-    // Banner from a successful signup redirect
+    // Banner from a successful signup redirect or account deletion
     const params = new URLSearchParams(window.location.search);
+    const banner = $("#login-banner");
+    const bannerClose = $("#login-banner-close");
+
+    if (bannerClose && banner) {
+      bannerClose.addEventListener("click", () => {
+        banner.hidden = true;
+      });
+    }
+
     if (params.get("registered") === "1") {
-      const banner = $("#login-banner");
       if (banner) {
         banner.hidden = false;
         banner.classList.add("banner--ok");
+        banner.style.background = "";
+        banner.style.borderColor = "";
+        banner.style.color = "";
         const email = params.get("email");
-        banner.querySelector("[data-banner-text]").textContent = email
-          ? `Account created for ${email}. Sign in to continue.`
-          : "Account created. Sign in to continue.";
+        const isReactivated = params.get("reactivated") === "1";
+        if (isReactivated) {
+          banner.querySelector("[data-banner-text]").textContent = email
+            ? `Account reactivated for ${email}! A welcome email has been sent to your Gmail. Sign in to continue.`
+            : "Account reactivated! A welcome email has been sent to your Gmail. Sign in to continue.";
+        } else {
+          banner.querySelector("[data-banner-text]").textContent = email
+            ? `Account created for ${email}. A welcome email has been sent to your Gmail! Sign in to continue.`
+            : "Account created. A welcome email has been sent to your Gmail! Sign in to continue.";
+        }
+
+        // Auto-fadeout after 8 seconds
+        setTimeout(() => {
+          if (banner && !banner.hidden) {
+            banner.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+            banner.style.opacity = "0";
+            banner.style.transform = "translateY(-4px)";
+            setTimeout(() => { banner.hidden = true; banner.style.opacity = ""; banner.style.transform = ""; }, 650);
+          }
+        }, 8000);
       }
       const emailField = $("#login-email");
       if (emailField && params.get("email")) emailField.value = params.get("email");
+
+      // Clean address bar so refreshing the page does not re-display the banner
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    } else if (params.get("deleted") === "1") {
+      if (banner) {
+        banner.hidden = false;
+        banner.classList.remove("banner--ok");
+        banner.style.background = "#fef2f2";
+        banner.style.borderColor = "#fca5a5";
+        banner.style.color = "#991b1b";
+        banner.querySelector("[data-banner-text]").textContent =
+          "Your account has been deleted. You can register again with the same Gmail anytime to reactivate it.";
+
+        // Auto-fadeout after 8 seconds
+        setTimeout(() => {
+          if (banner && !banner.hidden) {
+            banner.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+            banner.style.opacity = "0";
+            banner.style.transform = "translateY(-4px)";
+            setTimeout(() => { banner.hidden = true; banner.style.opacity = ""; banner.style.transform = ""; }, 650);
+          }
+        }, 8000);
+      } else {
+        showToast("Your account has been deleted. Register again with your Gmail to reactivate.", 5500);
+      }
+
+      // Clean address bar immediately so refreshing the page never shows the deleted banner again!
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
     }
 
     // If we arrived here with a role already chosen (e.g. from
@@ -420,7 +509,7 @@
       }
     }
 
-    loginForm.addEventListener("submit", (e) => {
+    loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const emailField = $("#login-email-field");
       const pwField = $("#login-password-field");
@@ -438,16 +527,46 @@
 
       const submitBtn = $("#login-submit");
       setButtonLoading(submitBtn, true);
-      // `selectedRole` ("farmer" | "student") goes along with the request so
-      // your backend can route to the matching role-specific login endpoint,
-      // and is now also passed into finishAuth so it actually gets saved
-      // and used to pick the right dashboard.
-      fakeApiCall({ email, password, role: selectedRole }, { failRate: 0 })
-        .then(() => finishAuth({ method: "password", email, mode: "login", role: selectedRole }))
-        .catch((err) => {
-          setButtonLoading(submitBtn, false);
-          showToast(err.message);
+
+      try {
+        const apiBase = getApiBase();
+        const res = await fetch(`${apiBase}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, role: selectedRole })
         });
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          setButtonLoading(submitBtn, false);
+          if (res.status === 403 || data.isInactive) {
+            setFieldError(emailField, data.error || "This account was deleted. Please register again with this Gmail to reactivate.");
+            showToast(data.error || "This account was deleted. Register again with this Gmail to reactivate.", 6000);
+          } else {
+            setFieldError(pwField, data.error || "Invalid email or password.");
+            showToast(data.error || "Invalid email or password.");
+          }
+          return;
+        }
+
+        if (data.token) localStorage.setItem("agrilearn_token", data.token);
+        if (data.profile) localStorage.setItem("agrilearn_user", JSON.stringify(data.profile));
+
+        await finishAuth({
+          method: "password",
+          email,
+          mode: "login",
+          role: (data.profile && data.profile.role) || selectedRole
+        });
+      } catch (err) {
+        console.warn("Backend login fetch error, falling back:", err.message);
+        fakeApiCall({ email, password, role: selectedRole }, { failRate: 0 })
+          .then(() => finishAuth({ method: "password", email, mode: "login", role: selectedRole }))
+          .catch((e) => {
+            setButtonLoading(submitBtn, false);
+            showToast(e.message);
+          });
+      }
     });
   }
 
@@ -515,7 +634,7 @@
           }
 
           // 2. Call Backend Mailer API to ensure reset email is dispatched
-          const apiBase = window.AGRILEARN_API || "http://localhost:4000/api";
+          const apiBase = getApiBase();
           const res = await fetch(`${apiBase}/forgot-password`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -558,17 +677,27 @@
 
   const signupForm = $("#signup-form");
   if (signupForm) {
-    signupForm.addEventListener("submit", (e) => {
+    signupForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+      const nameField = $("#signup-name-field");
       const emailField = $("#signup-email-field");
       const pwField = $("#signup-password-field");
       const confirmField = $("#signup-confirm-field");
 
+      const nameInput = $("#signup-name");
+      const name = nameInput ? nameInput.value.trim() : "";
       const email = $("#signup-email").value.trim();
       const password = $("#signup-password").value;
       const confirm = $("#signup-confirm").value;
 
       let valid = true;
+
+      if (nameField && !name) {
+        setFieldError(nameField, "Enter your full name.");
+        valid = false;
+      } else if (nameField) {
+        setFieldError(nameField, "");
+      }
 
       if (!EMAIL_RE.test(email)) { setFieldError(emailField, "Enter a valid email address."); valid = false; }
       else setFieldError(emailField, "");
@@ -589,12 +718,50 @@
 
       const submitBtn = $("#signup-submit");
       setButtonLoading(submitBtn, true);
-      fakeApiCall({ email, password, role: selectedRole })
-        .then(() => finishAuth({ method: "password", email, mode: "signup" }))
-        .catch((err) => {
-          setButtonLoading(submitBtn, false);
-          showToast(err.message);
+
+      try {
+        const apiBase = getApiBase();
+        const res = await fetch(`${apiBase}/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            name,
+            role: selectedRole
+          })
         });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          throw new Error(data.error || "Registration failed. Please try again.");
+        }
+
+        if (data && data.isReactivated) {
+          showToast(`Account reactivated! Welcome email sent to ${email}. Check your Gmail.`);
+        } else {
+          showToast(`Welcome email sent to ${email}! Check your Gmail.`);
+        }
+        await finishAuth({
+          method: "password",
+          email,
+          name,
+          mode: "signup",
+          role: selectedRole,
+          isReactivated: !!(data && data.isReactivated)
+        });
+      } catch (err) {
+        // Fallback for demo if server is offline or unreachable
+        if (err.message && err.message.includes("Failed to fetch")) {
+          console.warn("Backend server not reachable, using local registration mode:", err.message);
+          showToast(`Account created! (Local demo mode)`);
+          await finishAuth({ method: "password", email, name, mode: "signup", role: selectedRole });
+          return;
+        }
+        setButtonLoading(submitBtn, false);
+        showToast(err.message || "Registration failed. Please try again.");
+      }
     });
   }
 })();

@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const pool = require('../config/db');
 const { requireAuth } = require('../middleware/auth');
 const { requireRole } = require('../middleware/roles');
-const { sendResetEmail } = require('../utils/mailer');
+const { sendResetEmail, sendWelcomeEmail } = require('../utils/mailer');
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'agrilearn_jwt_secret_key_2026';
@@ -162,7 +162,8 @@ router.post('/register/farmer', async (req, res) => {
             `
             SELECT *
             FROM users
-            WHERE email = $1
+            WHERE lower(email) = lower($1)
+               OR lower(COALESCE(gmail, '')) = lower($1)
                OR phone = $2
                OR user_id::text = $3
             `,
@@ -174,11 +175,63 @@ router.post('/register/farmer', async (req, res) => {
         );
 
         if (existing.rows.length > 0) {
+            const existingUser = existing.rows[0];
+            if (existingUser.is_active === false) {
+                // ACCOUNT WAS DELETED: REACTIVATE!
+                const hashedPassword = await bcrypt.hash(password, 10);
+                const reactivated = await pool.query(
+                    `UPDATE users
+                     SET is_active = true,
+                         password_hash = $1,
+                         name = COALESCE(NULLIF($2, ''), name),
+                         role = 'farmer',
+                         phone = COALESCE(NULLIF($3, ''), phone),
+                         location = COALESCE($4, location),
+                         updated_at = NOW()
+                     WHERE user_id = $5
+                     RETURNING user_id, name, email, phone, role, location`,
+                    [hashedPassword, name, phone, location || null, existingUser.user_id]
+                );
+                const user = reactivated.rows[0];
+                const token = jwt.sign(
+                    {
+                        user_id: user.user_id,
+                        role: 'farmer'
+                    },
+                    process.env.JWT_SECRET || 'agrilearn_jwt_secret_key_2026',
+                    {
+                        expiresIn: '7d'
+                    }
+                );
+
+                // Send automated welcome email to Farmer upon re-registration
+                sendWelcomeEmail({
+                    toEmail: user.email,
+                    name: user.name,
+                    role: 'farmer'
+                }).catch(err => console.error('Failed to send farmer welcome email on reactivation:', err.message));
+
+                return res.status(201).json({
+                    message: 'Account reactivated successfully. Welcome back!',
+                    token,
+                    userId: user.user_id,
+                    isNewAccount: false,
+                    isReactivated: true,
+                    profile: {
+                        userId: user.user_id,
+                        name: user.name,
+                        gmail: user.email,
+                        phone: user.phone,
+                        gender: gender || '',
+                        location: user.location || '',
+                        role: 'farmer'
+                    }
+                });
+            }
 
             return res.status(409).json({
                 error: 'An account with this Gmail, phone or User ID already exists'
             });
-
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -187,9 +240,9 @@ router.post('/register/farmer', async (req, res) => {
     `
     INSERT INTO users
     (
-        user_id,
         name,
         email,
+        gmail,
         phone,
         password_hash,
         role,
@@ -200,8 +253,8 @@ router.post('/register/farmer', async (req, res) => {
     RETURNING user_id,name,email,phone,role,location
     `,
     [
-        userId,
         name,
+        gmail,
         gmail,
         phone,
         hashedPassword,
@@ -222,6 +275,13 @@ router.post('/register/farmer', async (req, res) => {
                 expiresIn: '7d'
             }
         );
+
+        // Send automated welcome email to Farmer upon registration (non-blocking)
+        sendWelcomeEmail({
+            toEmail: user.email,
+            name: user.name,
+            role: 'farmer'
+        }).catch(err => console.error('Failed to send farmer welcome email:', err.message));
 
         res.status(201).json({
 
@@ -305,7 +365,8 @@ router.post('/register/student', async (req, res) => {
             `
             SELECT *
             FROM users
-            WHERE email = $1
+            WHERE lower(email) = lower($1)
+               OR lower(COALESCE(gmail, '')) = lower($1)
                OR phone = $2
                OR user_id::text = $3
             `,
@@ -316,13 +377,72 @@ router.post('/register/student', async (req, res) => {
             ]
         );
 
-
         if (existing.rows.length > 0) {
+            const existingUser = existing.rows[0];
+            if (existingUser.is_active === false) {
+                // ACCOUNT WAS DELETED: REACTIVATE!
+                const hashedPassword = await bcrypt.hash(password, 10);
+                const reactivated = await pool.query(
+                    `UPDATE users
+                     SET is_active = true,
+                         password_hash = $1,
+                         name = COALESCE(NULLIF($2, ''), name),
+                         role = 'student',
+                         phone = COALESCE(NULLIF($3, ''), phone),
+                         location = COALESCE($4, location),
+                         updated_at = NOW()
+                     WHERE user_id = $5
+                     RETURNING user_id, name, email, phone, role, location`,
+                    [hashedPassword, name, phone, homeLocation || collegeLocation || null, existingUser.user_id]
+                );
+                const user = reactivated.rows[0];
+                const token = jwt.sign(
+                    {
+                        user_id: user.user_id,
+                        role: 'student'
+                    },
+                    process.env.JWT_SECRET || 'agrilearn_jwt_secret_key_2026',
+                    {
+                        expiresIn: '7d'
+                    }
+                );
+
+                // Send automated welcome email to Student upon re-registration / reactivation
+                sendWelcomeEmail({
+                    toEmail: user.email,
+                    name: user.name,
+                    role: 'student'
+                }).catch(err => console.error('Failed to send student welcome email on reactivation:', err.message));
+
+                return res.status(201).json({
+                    message: 'Account reactivated successfully. Welcome back!',
+                    token,
+                    userId: user.user_id,
+                    isNewAccount: false,
+                    isReactivated: true,
+                    profile: {
+                        userId: user.user_id,
+                        name: user.name,
+                        gmail: user.email,
+                        phone: user.phone,
+                        gender: gender || '',
+                        age: age || '',
+                        dob: dob || '',
+                        college: college || '',
+                        branch: branch || '',
+                        year: year || '',
+                        presentStudies: presentStudies || '',
+                        homeLocation: homeLocation || '',
+                        collegeLocation: collegeLocation || '',
+                        location: user.location || '',
+                        role: 'student'
+                    }
+                });
+            }
 
             return res.status(409).json({
                 error: 'An account with this Gmail, phone or User ID already exists'
             });
-
         }
 
 
@@ -333,9 +453,9 @@ router.post('/register/student', async (req, res) => {
     `
     INSERT INTO users
     (
-        user_id,
         name,
         email,
+        gmail,
         phone,
         password_hash,
         role,
@@ -346,8 +466,8 @@ router.post('/register/student', async (req, res) => {
     RETURNING user_id,name,email,phone,role,location
     `,
     [
-        userId,
         name,
+        gmail,
         gmail,
         phone,
         hashedPassword,
@@ -371,6 +491,12 @@ router.post('/register/student', async (req, res) => {
             }
         );
 
+        // Send automated welcome email to Student upon registration (non-blocking)
+        sendWelcomeEmail({
+            toEmail: user.email,
+            name: user.name,
+            role: 'student'
+        }).catch(err => console.error('Failed to send student welcome email:', err.message));
 
         res.status(201).json({
 
@@ -464,6 +590,13 @@ router.post('/login/farmer', async (req, res) => {
             });
         }
 
+        if (user.is_active === false) {
+            return res.status(403).json({
+                error: 'This account was deleted. Please create an account again with this Gmail to reactivate your account.',
+                isInactive: true
+            });
+        }
+
 
         const passwordMatch = await bcrypt.compare(
             password,
@@ -480,16 +613,7 @@ router.post('/login/farmer', async (req, res) => {
         }
 
 
-        const token = jwt.sign(
-            {
-                user_id: user.user_id,
-                role: 'farmer'
-            },
-            process.env.JWT_SECRET,
-            {
-                expiresIn: '7d'
-            }
-        );
+        const token = signToken(user);
 
 
         res.json({
@@ -547,27 +671,20 @@ router.post('/login/student', async (req, res) => {
         }
 
 
-        const result = await pool.query(
-            `
-            SELECT *
-            FROM users
-            WHERE user_id::text = $1
-              AND role = 'student'
-            `,
-            [userId]
-        );
+        const user = await findAccountByLoginAndRole(userId, 'student');
 
-
-        if (result.rows.length === 0) {
-
+        if (!user) {
             return res.status(401).json({
                 error: 'Invalid User ID or password'
             });
-
         }
 
-
-        const user = result.rows[0];
+        if (user.is_active === false) {
+            return res.status(403).json({
+                error: 'This account was deleted. Please create an account again with this Gmail to reactivate your account.',
+                isInactive: true
+            });
+        }
 
 
         const passwordMatch = await bcrypt.compare(
@@ -585,16 +702,7 @@ router.post('/login/student', async (req, res) => {
         }
 
 
-        const token = jwt.sign(
-            {
-                user_id: user.user_id,
-                role: 'student'
-            },
-            process.env.JWT_SECRET,
-            {
-                expiresIn: '7d'
-            }
-        );
+        const token = signToken(user);
 
 
         res.json({
@@ -633,7 +741,7 @@ router.post('/login/student', async (req, res) => {
 ========================================================= */
 router.post('/register', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, name, role } = req.body;
 
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password are required' });
@@ -646,40 +754,100 @@ router.post('/register', async (req, res) => {
 
         // Check if user exists
         const existing = await pool.query(
-            `SELECT * FROM users WHERE email = $1 OR gmail = $1 LIMIT 1`,
+            `SELECT * FROM users WHERE lower(email) = $1 OR lower(COALESCE(gmail, '')) = $1 LIMIT 1`,
             [cleanEmail]
         );
 
         if (existing.rows.length > 0) {
+            const existingUser = existing.rows[0];
+            if (existingUser.is_active === false) {
+                // ACCOUNT WAS DELETED: REACTIVATE!
+                const targetRole = (role === 'student' || role === 'farmer') ? role : (existingUser.role || 'farmer');
+                const hashedPassword = await bcrypt.hash(password, 10);
+                const displayName = (name || '').trim();
+
+                const reactivated = await pool.query(
+                    `UPDATE users
+                     SET is_active = true,
+                         password_hash = $1,
+                         name = COALESCE(NULLIF($2, ''), name),
+                         role = $3,
+                         updated_at = NOW()
+                     WHERE user_id = $4
+                     RETURNING user_id, name, email, role, profile_completed`,
+                    [hashedPassword, displayName, targetRole, existingUser.user_id]
+                );
+                const user = reactivated.rows[0];
+                const secret = process.env.JWT_SECRET || 'agrilearn_jwt_secret_key_2026';
+                const token = jwt.sign(
+                    { user_id: user.user_id, email: user.email, role: user.role },
+                    secret,
+                    { expiresIn: '7d' }
+                );
+
+                // Send automated welcome email to user upon re-registration (non-blocking)
+                sendWelcomeEmail({
+                    toEmail: user.email,
+                    name: user.name || displayName,
+                    role: targetRole
+                }).catch(err => console.error('Failed to send welcome email on reactivation:', err.message));
+
+                return res.status(201).json({
+                    message: 'Account reactivated successfully. Welcome back!',
+                    token,
+                    userId: user.user_id,
+                    profileCompleted: user.profile_completed || false,
+                    emailSent: true,
+                    isReactivated: true,
+                    user: {
+                        userId: user.user_id,
+                        name: user.name,
+                        email: user.email,
+                        role: user.role,
+                        profileCompleted: user.profile_completed || false
+                    }
+                });
+            }
+
             return res.status(409).json({ error: 'An account with this email already exists. Please log in instead.' });
         }
 
+        const targetRole = (role === 'student' || role === 'farmer') ? role : 'farmer';
         const hashedPassword = await bcrypt.hash(password, 10);
-        const userId = 'U-' + Math.floor(100000 + Math.random() * 900000);
+        const displayName = (name || '').trim();
 
         const result = await pool.query(
             `INSERT INTO users
-            (user_id, email, gmail, password_hash, auth_provider, profile_completed)
-            VALUES ($1, $2, $3, $4, 'local', false)
-            RETURNING user_id, email, role, profile_completed`,
-            [userId, cleanEmail, cleanEmail, hashedPassword]
+            (name, email, gmail, password_hash, role, auth_provider, profile_completed)
+            VALUES ($1, $2, $3, $4, $5, 'local', false)
+            RETURNING user_id, name, email, role, profile_completed`,
+            [displayName || cleanEmail.split('@')[0], cleanEmail, cleanEmail, hashedPassword, targetRole]
         );
 
         const user = result.rows[0];
         const secret = process.env.JWT_SECRET || 'agrilearn_jwt_secret_key_2026';
         const token = jwt.sign(
-            { user_id: user.user_id, email: user.email },
+            { user_id: user.user_id, email: user.email, role: user.role },
             secret,
             { expiresIn: '7d' }
         );
+
+        // Send automated welcome email to user upon registration (non-blocking)
+        sendWelcomeEmail({
+            toEmail: user.email,
+            name: user.name || displayName,
+            role: targetRole
+        }).catch(err => console.error('Failed to send welcome email:', err.message));
 
         res.status(201).json({
             message: 'Registration successful',
             token,
             userId: user.user_id,
             profileCompleted: false,
+            emailSent: true,
             user: {
                 userId: user.user_id,
+                name: user.name,
                 email: user.email,
                 role: user.role,
                 profileCompleted: false
@@ -706,7 +874,7 @@ router.post('/login', async (req, res) => {
 
         const result = await pool.query(
             `SELECT * FROM users
-             WHERE email = $1 OR gmail = $1 OR user_id = $1 OR phone = $1
+             WHERE email = $1 OR gmail = $1 OR user_id::text = $1 OR phone = $1
              LIMIT 1`,
             [loginId]
         );
@@ -716,6 +884,14 @@ router.post('/login', async (req, res) => {
         }
 
         const user = result.rows[0];
+
+        if (user.is_active === false) {
+            return res.status(403).json({
+                error: 'This account was deleted. Please create an account again with this Gmail to reactivate your account.',
+                isInactive: true
+            });
+        }
+
         if (!user.password_hash) {
             return res.status(401).json({ error: 'This account uses Google Sign-In. Please tap "Continue with Google".' });
         }
@@ -725,12 +901,7 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid email/User ID or password' });
         }
 
-        const secret = process.env.JWT_SECRET || 'agrilearn_jwt_secret_key_2026';
-        const token = jwt.sign(
-            { user_id: user.user_id, role: user.role },
-            secret,
-            { expiresIn: '7d' }
-        );
+        const token = signToken(user);
 
         res.json({
             message: 'Login successful',
@@ -786,7 +957,7 @@ router.post('/profile/setup', async (req, res) => {
         const userRes = await pool.query(
             `UPDATE users
              SET name = $1, phone = $2, role = $3, location = $4, profile_completed = true
-             WHERE user_id = $5 OR email = $5 OR gmail = $5
+             WHERE user_id::text = $5 OR email = $5 OR gmail = $5
              RETURNING *`,
             [name, phone, role, location || homeLocation || collegeLocation || '', targetUser]
         );
@@ -893,6 +1064,146 @@ router.get(
     }
 );
 
+/* =========================================================
+   CHECK ACCOUNT STATUS
+   GET /api/account/status?email=...
+   Provides instant live database status check for any account
+========================================================= */
+router.get('/account/status', async (req, res) => {
+    try {
+        const rawId = (req.query.email || req.query.gmail || req.query.identifier || req.query.userId || req.query.id || '').trim();
+        if (!rawId) {
+            return res.status(400).json({
+                error: 'Email or identifier is required in query parameter (e.g. /api/account/status?email=you@gmail.com)'
+            });
+        }
+
+        const cleanId = rawId.toLowerCase();
+        const result = await pool.query(
+            `SELECT user_id, name, email, gmail, role, is_active, updated_at, created_at
+             FROM users
+             WHERE lower(email) = $1
+                OR lower(COALESCE(gmail, '')) = $1
+                OR user_id::text = $2
+             ORDER BY updated_at DESC
+             LIMIT 1`,
+            [cleanId, rawId]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({
+                exists: false,
+                message: `No account found in database for "${rawId}".`
+            });
+        }
+
+        const u = result.rows[0];
+        const isActive = u.is_active !== false;
+
+        res.json({
+            exists: true,
+            userId: u.user_id,
+            name: u.name || '',
+            email: u.email || u.gmail,
+            role: u.role,
+            isActive: isActive,
+            status: isActive ? 'ACTIVE' : 'DELETED (INACTIVE)',
+            message: isActive
+                ? 'Account is active. Normal login and dashboard access are enabled.'
+                : 'Account has been deleted. You can reactivate anytime by registering again with this same Gmail.',
+            updatedAt: u.updated_at,
+            createdAt: u.created_at
+        });
+    } catch (error) {
+        console.error('ACCOUNT STATUS CHECK ERROR:', error);
+        res.status(500).json({ error: error.message || 'Failed to check account status' });
+    }
+});
+
+/* =========================================================
+   DELETE ACCOUNT (SOFT DELETE)
+   POST /api/account/delete
+   Marks user as is_active = false in the database without deleting rows.
+========================================================= */
+router.post('/account/delete', async (req, res) => {
+    try {
+        let tokenUserId = null;
+        let tokenEmail = null;
+
+        // Extract from authorization token if present
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            const token = authHeader.split(' ')[1];
+            try {
+                const secret = process.env.JWT_SECRET || 'agrilearn_jwt_secret_key_2026';
+                const decoded = jwt.verify(token, secret);
+                tokenUserId = decoded.user_id;
+                tokenEmail = decoded.email;
+            } catch (jwtErr) {
+                // Token error; fall back to body
+            }
+        }
+
+        const bodyEmail = (req.body && (req.body.email || req.body.gmail) ? String(req.body.email || req.body.gmail) : '').toLowerCase().trim();
+        const bodyUserId = req.body && (req.body.userId || req.body.user_id) ? String(req.body.userId || req.body.user_id).trim() : null;
+
+        const cleanEmail = (tokenEmail || bodyEmail || '').toLowerCase().trim();
+        const cleanUserId = tokenUserId ? String(tokenUserId).trim() : bodyUserId;
+
+        if (!cleanEmail && !cleanUserId) {
+            return res.status(400).json({ error: 'User email or ID required to delete account' });
+        }
+
+        let result;
+        if (cleanEmail && cleanUserId) {
+            result = await pool.query(
+                `UPDATE users
+                 SET is_active = false, updated_at = NOW()
+                 WHERE user_id::text = $1 OR lower(email) = $2 OR lower(COALESCE(gmail, '')) = $2
+                 RETURNING user_id, email, role, is_active`,
+                [cleanUserId, cleanEmail]
+            );
+        } else if (cleanEmail) {
+            result = await pool.query(
+                `UPDATE users
+                 SET is_active = false, updated_at = NOW()
+                 WHERE lower(email) = $1 OR lower(COALESCE(gmail, '')) = $1
+                 RETURNING user_id, email, role, is_active`,
+                [cleanEmail]
+            );
+        } else {
+            result = await pool.query(
+                `UPDATE users
+                 SET is_active = false, updated_at = NOW()
+                 WHERE user_id::text = $1
+                 RETURNING user_id, email, role, is_active`,
+                [cleanUserId]
+            );
+        }
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Account not found to delete' });
+        }
+
+        const deletedUser = result.rows[0];
+        console.log(`🗑️ Account soft-deleted (is_active = false): user_id=${deletedUser.user_id}, email=${deletedUser.email}, role=${deletedUser.role}`);
+
+        res.json({
+            success: true,
+            message: 'Account has been deleted successfully. You can reactivate anytime by creating an account again with this Gmail.',
+            user: {
+                userId: deletedUser.user_id,
+                email: deletedUser.email,
+                role: deletedUser.role,
+                isActive: deletedUser.is_active
+            }
+        });
+    } catch (error) {
+        console.error('DELETE ACCOUNT ERROR:', error);
+        res.status(500).json({ error: error.message || 'Failed to delete account' });
+    }
+});
+
 
 /* =========================================================
    GOOGLE AUTH & PASSKEY REGISTRATION
@@ -917,8 +1228,7 @@ router.post('/auth/google', async (req, res) => {
             return res.status(400).json({ error: 'Google email is required' });
         }
 
-        const targetRole = role || 'farmer';
-        const userId = 'G-' + (googleId || Math.floor(100000 + Math.random() * 900000));
+        const targetRole = (role === 'student' || role === 'farmer') ? role : 'farmer';
         const userEmail = email.toLowerCase().trim();
 
         // Check if user already exists
@@ -928,42 +1238,67 @@ router.post('/auth/google', async (req, res) => {
         );
 
         let user;
-        if (result.rows.length === 0) {
+        const isNew = result.rows.length === 0;
+        if (isNew) {
             // Create user
             const newUser = await pool.query(
                 `INSERT INTO users
-                (user_id, name, email, gmail, phone, role, location, auth_provider, google_id)
-                VALUES ($1, $2, $3, $4, $5, $6, $7, 'google', $8)
+                (name, email, gmail, phone, role, location, auth_provider, google_id)
+                VALUES ($1, $2, $3, $4, $5, $6, 'google', $7)
                 RETURNING *`,
                 [
-                    userId,
                     name || 'Google User',
                     userEmail,
                     userEmail,
                     phone || '0000000000',
                     targetRole,
                     location || 'Not Specified',
-                    googleId || userId
+                    String(googleId || '')
                 ]
             );
             user = newUser.rows[0];
 
-            // Insert into role profile table
-            if (targetRole === 'farmer') {
-                await pool.query(
-                    `INSERT INTO farmer_profiles (user_id, name, location)
-                     VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
-                    [user.id, user.name, user.location]
-                );
-            } else if (targetRole === 'student') {
-                await pool.query(
-                    `INSERT INTO student_profiles (user_id, name, college, branch, year)
-                     VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING`,
-                    [user.id, user.name, college || '', branch || '', year || '']
-                );
+            // Optional role profile record
+            try {
+                if (targetRole === 'farmer') {
+                    await pool.query(
+                        `INSERT INTO farmer_profiles (user_id)
+                         VALUES ($1) ON CONFLICT DO NOTHING`,
+                        [user.user_id]
+                    );
+                } else if (targetRole === 'student') {
+                    await pool.query(
+                        `INSERT INTO student_profiles (user_id, institution, course)
+                         VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
+                        [user.user_id, college || '', branch || '']
+                    );
+                }
+            } catch (profileErr) {
+                console.warn('Profile table insert notice:', profileErr.message);
             }
+
+            // Send automated welcome email for NEW Google registrations only (non-blocking)
+            sendWelcomeEmail({
+                toEmail: userEmail,
+                name: user.name,
+                role: targetRole
+            }).catch(err => console.error('Failed to send Google welcome email:', err.message));
         } else {
             user = result.rows[0];
+            if (user.is_active === false) {
+                // ACCOUNT WAS DELETED: REACTIVATE!
+                await pool.query(
+                    `UPDATE users SET is_active = true, updated_at = NOW() WHERE user_id = $1`,
+                    [user.user_id]
+                );
+                user.is_active = true;
+                // Send automated welcome email on reactivation
+                sendWelcomeEmail({
+                    toEmail: userEmail,
+                    name: user.name,
+                    role: user.role || targetRole
+                }).catch(err => console.error('Failed to send Google welcome email on reactivation:', err.message));
+            }
         }
 
         const secret = process.env.JWT_SECRET || 'agrilearn_jwt_secret_key_2026';

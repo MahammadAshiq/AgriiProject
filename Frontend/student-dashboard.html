@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Student Portal — AgriLearn</title>
+<title>Student Portal — AgriiLearn</title>
 <meta name="description" content="HackerRank & GFG style learning platform for B.Sc. Agriculture students — 25 Subjects, Tests, Quizzes, Certifications, Leaderboard, and Profile." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -716,7 +716,7 @@ body.stud-body {
           <path d="M16 23c0-6 3-10 7-12-1 6-3 10-7 12Z" fill="#00ea64"/>
           <path d="M16 23c0-7-3.5-11-8-13 1 6.5 3.5 11 8 13Z" fill="#ffffff"/>
         </svg>
-        <span>AgriLearn Student</span>
+        <span>AgriiLearn Student</span>
       </a>
 
       <button class="hr-menu-toggle" id="hr-menu-toggle" aria-label="Toggle navigation">☰</button>
@@ -886,6 +886,17 @@ body.stud-body {
 
             <button type="submit" style="background: var(--hr-green-dark); color: #fff; border: none; padding: 10px 20px; font-weight: 600; border-radius: 8px; cursor: pointer;">Save Settings</button>
           </form>
+
+          <div style="margin-top: 36px; padding: 20px; border: 1px solid #fecaca; background: #fff5f5; border-radius: 12px;">
+            <h4 style="margin: 0 0 8px; color: #b91c1c;">⚠️ Danger Zone — Account Deletion</h4>
+            <p style="font-size: 13.5px; color: #7f1d1d; margin: 0 0 16px; line-height: 1.5;">
+              Deleting your account will remove your profile and student access. You can reactivate anytime by registering again with this same Gmail address.
+            </p>
+            <button type="button" id="btn-tab-delete-account" style="background: #ef4444; color: #fff; border: none; padding: 9px 18px; border-radius: 6px; font-weight: 600; font-size: 13.5px; cursor: pointer;">Delete My Account</button>
+            <div style="margin-top: 14px;">
+              <a id="student-status-check-link" href="#" target="_blank" style="color: #2563eb; font-size: 13px; font-weight: 600; text-decoration: none;">🔍 Check Live Database Status API</a>
+            </div>
+          </div>
         </section>
       </div>
     </div>
@@ -896,7 +907,7 @@ body.stud-body {
   <div class="cert-modal" id="cert-modal">
     <div class="cert-paper">
       <div style="font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.1em; color: #b45309;">OFFICIAL CERTIFICATE OF ACHIEVEMENT</div>
-      <h2>AgriLearn Academy</h2>
+      <h2>AgriiLearn Academy</h2>
       <p style="font-size: 14px; color: #451a03;">This certificate is proudly awarded to</p>
 
       <div class="cert-name" id="cert-recipient-name">Student</div>
@@ -911,6 +922,21 @@ body.stud-body {
       </div>
 
       <button id="btn-close-cert" style="margin-top: 24px; background: #78350f; color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer;">Close & Print</button>
+    </div>
+  </div>
+
+  <!-- ── Delete Account Modal ─────────────────────────────────────────── -->
+  <div class="cert-modal" id="delete-student-modal">
+    <div style="background: #fff; border-radius: 16px; max-width: 440px; width: 100%; padding: 28px; box-shadow: 0 20px 40px rgba(0,0,0,0.3); text-align: center;">
+      <div style="width: 52px; height: 52px; border-radius: 50%; background: #fee2e2; color: #ef4444; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 16px;">⚠️</div>
+      <h3 style="font-size: 1.4rem; color: #0f172a; margin: 0 0 10px;">Delete Your Account?</h3>
+      <p style="font-size: 14px; color: #64748b; line-height: 1.6; margin: 0 0 24px;">
+        Are you sure you want to delete your AgriiLearn account? Your profile will be removed. You can reactivate anytime by creating an account again with this same Gmail address.
+      </p>
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button type="button" id="btn-cancel-student-delete" style="flex: 1; padding: 11px 18px; border: 1px solid #cbd5e1; background: #fff; color: #475569; font-weight: 600; border-radius: 8px; cursor: pointer;">Cancel</button>
+        <button type="button" id="btn-confirm-student-delete" style="flex: 1; padding: 11px 18px; border: none; background: #ef4444; color: #fff; font-weight: 600; border-radius: 8px; cursor: pointer;">Yes, Delete Account</button>
+      </div>
     </div>
   </div>
 
@@ -1417,6 +1443,74 @@ body.stud-body {
           alert("Profile settings saved successfully!");
         }
       });
+
+      function getApiBase() {
+        if (window.AGRILEARN_API) return window.AGRILEARN_API;
+        if (window.location.protocol === "file:") return "http://localhost:4000/api";
+        if (window.location.hostname === "localhost" && window.location.port && window.location.port !== "4000") {
+          return "http://localhost:4000/api";
+        }
+        return "/api";
+      }
+
+      // Delete student account handlers
+      const deleteStudentModal = document.getElementById("delete-student-modal");
+      const openDeleteModal = () => { if (deleteStudentModal) deleteStudentModal.classList.add("is-open"); };
+      const closeDeleteModal = () => { if (deleteStudentModal) deleteStudentModal.classList.remove("is-open"); };
+
+      const tabDeleteBtn = document.getElementById("btn-tab-delete-account");
+      const cancelDelete = document.getElementById("btn-cancel-student-delete");
+      const confirmDelete = document.getElementById("btn-confirm-student-delete");
+
+      if (tabDeleteBtn) tabDeleteBtn.addEventListener("click", openDeleteModal);
+      if (cancelDelete) cancelDelete.addEventListener("click", closeDeleteModal);
+      if (deleteStudentModal) {
+        deleteStudentModal.addEventListener("click", (e) => {
+          if (e.target === deleteStudentModal) closeDeleteModal();
+        });
+      }
+
+      // Set live status check API link
+      const studentStatusLink = document.getElementById("student-status-check-link");
+      if (studentStatusLink) {
+        const checkEmail = loggedInEmail || (appState && appState.email);
+        if (checkEmail) {
+          studentStatusLink.href = `${getApiBase()}/account/status?email=${encodeURIComponent(checkEmail)}`;
+        }
+      }
+
+      if (confirmDelete) {
+        confirmDelete.addEventListener("click", async () => {
+          confirmDelete.disabled = true;
+          confirmDelete.textContent = "Deleting...";
+          try {
+            const apiBase = getApiBase();
+            const userToken = localStorage.getItem("agrilearn_token");
+            const storedEmail = localStorage.getItem("agrilearn_email");
+            let storedUserObj = {};
+            try { storedUserObj = JSON.parse(localStorage.getItem("agrilearn_user") || "{}"); } catch(e) {}
+            const finalEmail = storedEmail || storedUserObj.email || storedUserObj.gmail || "";
+            const finalUserId = storedUserObj.userId || storedUserObj.user_id || "";
+
+            await fetch(`${apiBase}/account/delete`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                ...(userToken ? { "Authorization": `Bearer ${userToken}` } : {})
+              },
+              body: JSON.stringify({ email: finalEmail, userId: finalUserId })
+            });
+          } catch(err) {
+            console.warn("Delete account notice:", err);
+          }
+          sessionStorage.removeItem("agrilearn_demo_session");
+          localStorage.removeItem("agrilearn_token");
+          localStorage.removeItem("agrilearn_role");
+          localStorage.removeItem("agrilearn_email");
+          localStorage.removeItem("agrilearn_user");
+          window.location.href = "login.html?deleted=1";
+        });
+      }
 
       /* ---------------------------------------------------------------- */
       /* INIT                                                              */

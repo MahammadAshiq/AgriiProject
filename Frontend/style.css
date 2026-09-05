@@ -1189,3 +1189,45 @@ a { color: inherit; }
   margin: 0;
 }
 
+/* ---------------------------------------------------------------------- */
+/* Smooth Micro-Animations for Modals, Quizzes & Questions                 */
+/* ---------------------------------------------------------------------- */
+
+@keyframes modalZoomIn {
+  0% { opacity: 0; transform: scale(0.92) translateY(12px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+#farmer-profile-modal > div,
+#delete-account-overlay > div,
+#delete-student-modal > div {
+  animation: modalZoomIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes questionFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.article-quiz,
+.test-card,
+.prep-header,
+#daily-quiz-card {
+  animation: questionFadeIn 0.35s ease-out both;
+}
+
+.article-quiz__option,
+#daily-quiz-card button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.article-quiz__option:hover,
+#daily-quiz-card button:hover {
+  transform: translateX(4px);
+}
+
+.banner {
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+
